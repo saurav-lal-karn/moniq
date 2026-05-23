@@ -10,6 +10,7 @@ import (
 	"github.com/redis/go-redis/v9"
 	"github.com/saurav-lal-karn/moniq/backend/internal/config"
 	"github.com/saurav-lal-karn/moniq/backend/internal/middleware"
+	"github.com/saurav-lal-karn/moniq/backend/internal/modules/user"
 )
 
 func SetupRouter(cfg *config.Config, db *pgxpool.Pool, rdb *redis.Client) *gin.Engine {
@@ -49,7 +50,7 @@ func SetupRouter(cfg *config.Config, db *pgxpool.Pool, rdb *redis.Client) *gin.E
 	routeV1 := router.Group("/api/v1")
 
 	// Register routes here
-	RegisterUserRoutes(routeV1, db, cfg)
+	user.RegisterRoutes(routeV1, db, cfg)
 	
 	return router
 }
