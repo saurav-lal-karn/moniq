@@ -10,6 +10,7 @@ import (
 	"github.com/redis/go-redis/v9"
 	"github.com/saurav-lal-karn/moniq/backend/internal/config"
 	"github.com/saurav-lal-karn/moniq/backend/internal/middleware"
+	iamroute "github.com/saurav-lal-karn/moniq/backend/internal/modules/iam/route"
 	"github.com/saurav-lal-karn/moniq/backend/internal/modules/user"
 )
 
@@ -51,6 +52,9 @@ func SetupRouter(cfg *config.Config, db *pgxpool.Pool, rdb *redis.Client) *gin.E
 
 	// Register routes here
 	user.RegisterRoutes(routeV1, db, cfg)
+
+	// Register iam routes
+	iamroute.RegisterIamRoutes(routeV1, db, cfg)
 	
 	return router
 }

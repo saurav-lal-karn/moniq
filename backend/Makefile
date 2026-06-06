@@ -1,8 +1,36 @@
 DB_URL=postgres://postgres:postgres@localhost:5433/moniq?sslmode=disable
-
 MIGRATIONS_PATH=./migrations
 
-.PHONY: migrate-up migrate-down migrate-force migrate-version migrate-create
+.PHONY: build run swagger test clean tidy dev migrate-up migrate-down migrate-force migrate-version migrate-create
+
+# Build the application
+build: swagger
+	go build -o bin/server ./cmd/server
+
+# Run the application
+run: swagger
+	go run ./cmd/server
+
+# Generate swagger docs
+swagger:
+	swag init -g cmd/server/main.go --parseInternal
+
+# Run tests
+test:
+	go test -v ./...
+
+# Clean build artifacts
+clean:
+	rm -rf bin/
+	rm -rf docs/
+
+# Tidy dependencies
+tidy:
+	go mod tidy
+
+# Development mode with air (hot reload)
+dev: swagger
+	air
 
 # Create a new migration
 # Usage:

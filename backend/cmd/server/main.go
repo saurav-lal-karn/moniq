@@ -15,8 +15,26 @@ import (
 	"github.com/saurav-lal-karn/moniq/backend/internal/database"
 	"github.com/saurav-lal-karn/moniq/backend/internal/routes"
 	"github.com/saurav-lal-karn/moniq/backend/pkg/logger"
+	swaggerFiles "github.com/swaggo/files"
+	ginSwagger "github.com/swaggo/gin-swagger"
+
+	_ "github.com/saurav-lal-karn/moniq/backend/docs" // Swagger docs
 )
 
+// @title Moniq Backend API
+// @version 1.0
+// @description This is the API documentation for the Moniq Backend.
+// @termsOfService http://example.com/terms/
+
+// @contact.name API Support
+// @contact.url http://github.com/saurav-lal-karn/moniq/issues
+// @contact.email sauravkarn541@gmail.com
+
+// @BasePath /api/v1
+
+// @securityDefinitions.apikey BearerAuth
+// @in header
+// @name Authorization
 func main() {
 	// 1. Load Configuration
 	cfg, err := config.LoadConfig()
@@ -58,6 +76,8 @@ func main() {
 
 	// 8. Initialize router
 	r := routes.SetupRouter(cfg, db, rdb)
+
+	r.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 	
 	// 11. Configure HTTP Server
 	srv := &http.Server{

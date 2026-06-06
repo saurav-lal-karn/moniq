@@ -1,6 +1,11 @@
 package repository
 
-import "github.com/jackc/pgx/v5/pgxpool"
+import (
+	"context"
+
+	"github.com/jackc/pgx/v5/pgxpool"
+	iamModel "github.com/saurav-lal-karn/moniq/backend/internal/modules/iam/model"
+)
 
 type iamRepository struct {
 	db *pgxpool.Pool
@@ -8,11 +13,10 @@ type iamRepository struct {
 
 type IAMRepository interface {
 	// Define methods for IAM-related database operations here
-	Create() error
-	GetByID() error
-	List() error
-	Update() error
-	Delete() error
+	Create(ctx context.Context, user *iamModel.User) error
+	GetByID(ctx context.Context, id string) (*iamModel.User, error)
+	List(ctx context.Context) ([]*iamModel.User, error)
+	Update(ctx context.Context, user *iamModel.User) error
 }
 
 func NewIAMRepository(db *pgxpool.Pool) IAMRepository {
@@ -21,16 +25,18 @@ func NewIAMRepository(db *pgxpool.Pool) IAMRepository {
 	}
 }
 
-func (r *iamRepository) Create() error {
-	// Implement the logic to create a new IAM record in the database
-	// Example:
-	// _, err := r.db.Exec(ctx, "INSERT INTO iam_table (column1, column2) VALUES ($1, $2)", value1, value2)
-	// return err
-
-	return nil // Placeholder return statement
+func (r *iamRepository) Create(ctx context.Context, user *iamModel.User) error {
+	// TODO: Check for errors and handle them appropriately (e.g., unique constraint violations)
+	// TODO: Create the auth identifiers (e.g., password hash, tokens, etc.) and store them securely
+	query := `
+		INSERT INTO users (id, first_name, last_name, email, created_at, updated_at)
+		VALUES ($1, $2, $3, $4, $5, $6)
+	`
+	_, err := r.db.Exec(ctx, query, user.ID, user.FirstName, user.LastName, user.Email, user.CreatedAt, user.UpdatedAt)
+	return err
 }
 
-func (r *iamRepository) GetByID() error {
+func (r *iamRepository) GetByID(ctx context.Context, id string) (*iamModel.User, error) {
 	// Implement the logic to get an IAM record by ID from the database
 	// Example:
 	// row := r.db.QueryRow(ctx, "SELECT * FROM iam_table WHERE id = $1", id)
@@ -40,10 +46,10 @@ func (r *iamRepository) GetByID() error {
 	// }
 	// return &iam, nil
 
-	return nil // Placeholder return statement
+	return nil, nil // Placeholder return statement
 }
 
-func (r *iamRepository) List() error {
+func (r *iamRepository) List(ctx context.Context) ([]*iamModel.User, error) {
 	// Implement the logic to list IAM records from the database
 	// Example:
 	// rows, err := r.db.Query(ctx, "SELECT * FROM iam_table")
@@ -63,22 +69,13 @@ func (r *iamRepository) List() error {
 
 	// return iams, nil
 
-	return nil // Placeholder return statement
+	return nil, nil // Placeholder return statement
 }
 
-func (r *iamRepository) Update() error {
+func (r *iamRepository) Update(ctx context.Context, user *iamModel.User) error {
 	// Implement the logic to update an existing IAM record in the database
 	// Example:
 	// _, err := r.db.Exec(ctx, "UPDATE iam_table SET column1 = $1 WHERE id = $2", value1, id)
-	// return err
-
-	return nil // Placeholder return statement
-}
-
-func (r *iamRepository) Delete() error {
-	// Implement the logic to delete an IAM record from the database
-	// Example:
-	// _, err := r.db.Exec(ctx, "DELETE FROM iam_table WHERE id = $1", id)
 	// return err
 
 	return nil // Placeholder return statement
