@@ -9,12 +9,15 @@ import (
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/redis/go-redis/v9"
 	"github.com/saurav-lal-karn/moniq/backend/internal/config"
+	"github.com/saurav-lal-karn/moniq/backend/internal/database"
 	"github.com/saurav-lal-karn/moniq/backend/internal/middleware"
 	iamroute "github.com/saurav-lal-karn/moniq/backend/internal/modules/iam/route"
 	"github.com/saurav-lal-karn/moniq/backend/internal/modules/user"
 )
 
 func SetupRouter(cfg *config.Config, db *pgxpool.Pool, rdb *redis.Client) *gin.Engine {
+	txm := database.NewTxManager(db)
+
 	router := gin.New()
 	router.Use(middleware.Logger()) // Custom structured logging middleware
 	router.Use(gin.Recovery())      // Crash recovery
@@ -54,7 +57,7 @@ func SetupRouter(cfg *config.Config, db *pgxpool.Pool, rdb *redis.Client) *gin.E
 	user.RegisterRoutes(routeV1, db, cfg)
 
 	// Register iam routes
-	iamroute.RegisterIamRoutes(routeV1, db, cfg)
+	iamroute.RegisterIamRoutes(routeV1, txm, cfg)
 	
 	return router
 }

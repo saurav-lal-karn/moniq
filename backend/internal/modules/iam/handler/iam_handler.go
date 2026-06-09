@@ -7,6 +7,7 @@ import (
 	"github.com/saurav-lal-karn/moniq/backend/internal/helper"
 	"github.com/saurav-lal-karn/moniq/backend/internal/modules/iam/dto"
 	"github.com/saurav-lal-karn/moniq/backend/internal/modules/iam/service"
+	"github.com/saurav-lal-karn/moniq/backend/pkg/logger"
 )
 
 type iamHandler struct {
@@ -35,7 +36,13 @@ func NewIAMHandler(service service.IAMService) *iamHandler {
 func (h *iamHandler) Register(ctx *gin.Context) {
 	var req dto.RegisterRequestDTO
 	if err := ctx.ShouldBindJSON(&req); err != nil {
-		helper.ErrorResponse(ctx, http.StatusBadRequest, "Invalid request body")
+		helper.ErrorResponse(ctx, http.StatusBadRequest, helper.FormatValidationError(err))
+		return
+	}
+
+	if err := h.service.Register(ctx.Request.Context(), &req); err != nil {
+		logger.Error("Failed to register user", logger.ErrorField(err))
+		helper.ErrorResponse(ctx, http.StatusInternalServerError, err.Error())
 		return
 	}
 
