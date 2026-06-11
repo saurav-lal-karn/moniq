@@ -7,11 +7,22 @@ import (
 	"github.com/saurav-lal-karn/moniq/backend/internal/modules/iam/handler"
 	"github.com/saurav-lal-karn/moniq/backend/internal/modules/iam/repository"
 	"github.com/saurav-lal-karn/moniq/backend/internal/modules/iam/service"
+	workspaceRepository "github.com/saurav-lal-karn/moniq/backend/internal/modules/workspace/repository"
+	workspaceService "github.com/saurav-lal-karn/moniq/backend/internal/modules/workspace/service"
+	"github.com/saurav-lal-karn/moniq/backend/pkg/mailer"
 )
 
 func RegisterIamRoutes(route *gin.RouterGroup, txm *database.TxManager, cfg *config.Config) {
 	iamRepo := repository.NewIAMRepository(txm)
-	iamService := service.NewIAMService(txm, iamRepo)
+
+	workspaceRepo := workspaceRepository.NewWorkspaceRepository(txm)
+	workspaceMemberRepo := workspaceRepository.NewWorkspaceMemberRepository(txm)
+	wsService := workspaceService.NewWorkspaceService(txm, workspaceRepo, workspaceMemberRepo)
+
+	// LogMailer in dev (no API key), real provider in prod.
+	mail := mailer.New(cfg.EmailAPIKey, cfg.EmailFrom)
+
+	iamService := service.NewIAMService(txm, iamRepo, wsService, mail, cfg.AppBaseURL)
 	iamHandler := handler.NewIAMHandler(iamService)
 
 	authRoutes := route.Group("auth")

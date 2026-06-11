@@ -17,6 +17,7 @@ type IAMRepository interface {
 	GetByEmail(ctx context.Context, email string) (*iamModel.User, error) // Added method to get user by email for login purposes
 	CheckUserExists(ctx context.Context, email string) (bool, error) // Added method to check if a user already exists by email
 	CreateAuthIdentities(ctx context.Context, authIdentifier *iamModel.AuthIdentifier) error // Added method to create auth identifiers (e.g., password hash)
+	CreateEmailVerification(ctx context.Context, emailVetification *iamModel.UserEmailVerification) error
 }
 
 func NewIAMRepository(db database.DB) IAMRepository {
@@ -57,5 +58,14 @@ func (r *iamRepository) CreateAuthIdentities(ctx context.Context, authIdentifier
 		VALUES ($1, $2, $3, $4, $5, $6)
 	`
 	_, err := r.db.Executor(ctx).Exec(ctx, query, authIdentifier.ID, authIdentifier.UserID, authIdentifier.PasswordHash, authIdentifier.RefreshTokenHash, authIdentifier.AuthProvider, authIdentifier.AuthProviderUserID)
+	return err
+}
+
+func(r *iamRepository) CreateEmailVerification(ctx context.Context, emailVetification *iamModel.UserEmailVerification) error {
+	query := `
+		INSERT INTO user_email_verifications(id, user_id, token, expires_at)
+		VALUES ($1, $2, $3, $4)
+	`
+	_, err := r.db.Executor(ctx).Exec(ctx, query, emailVetification.ID, emailVetification.UserID, emailVetification.Token, emailVetification.ExpiresAt)
 	return err
 }

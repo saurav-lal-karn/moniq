@@ -28,12 +28,13 @@ func NewWorkspaceMemberRepository(db database.DB) WorkspaceMemberRepository {
 
 // AddMemberToWorkspace implements WorkspaceMemberRepository.
 func (w *workspaceMemberRepository) AddMemberToWorkspace(ctx context.Context, member *workspaceModel.WorkspaceMember) error {
+	// joined_at, created_at and updated_at fall back to their column defaults.
 	query := `
-		INSERT INTO workspace_members (id, role, workspace_id, user_id, created_by, joined_at)
-		VALUES ($1, $2, $s, $4, $5, $6)
+		INSERT INTO workspace_members (id, role, workspace_id, user_id, created_by)
+		VALUES ($1, $2, $3, $4, $5)
 	`
 
-	_, err := w.db.Executor(ctx).Exec(ctx, query, member.ID, member.Role, member.WorkspaceID, member.UserID, member.CreatedBy, member.CreatedAt)
+	_, err := w.db.Executor(ctx).Exec(ctx, query, member.ID, member.Role, member.WorkspaceID, member.UserID, member.CreatedBy)
 	return err
 }
 

@@ -22,6 +22,15 @@ type Config struct {
 	RedisURL       string
 	JWTSecret      string
 	JWTExpiryHours int
+
+	// AppBaseURL is the public base URL of the API, used to build links sent in
+	// emails (e.g. the email verification link).
+	AppBaseURL string
+	// EmailAPIKey enables real email delivery when set. When empty, emails are
+	// logged to the terminal instead of being sent.
+	EmailAPIKey string
+	// EmailFrom is the sender address used for outbound email.
+	EmailFrom string
 }
 
 // LoadConfig loads the configuration from environment variables.
@@ -50,6 +59,9 @@ func LoadConfig() (*Config, error) {
 		DatabasePassword: getEnv("DB_PASSWORD", "postgres"),
 		DatabaseName:   getEnv("DB_NAME", "moniq"),
 		DatabaseSSLMode: getEnv("DB_SSL_MODE", "disable"),
+		AppBaseURL:     getEnv("APP_BASE_URL", "http://localhost:8080"),
+		EmailAPIKey:    getEnv("EMAIL_API_KEY", ""),
+		EmailFrom:      getEnv("EMAIL_FROM", "Moniq <no-reply@moniq.app>"),
 	}
 
 	return cfg, nil

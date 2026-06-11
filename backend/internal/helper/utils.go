@@ -26,6 +26,17 @@ func GetEnvAsInt(key string, defaultValue int) int {
 	return value
 }
 
+// GenerateSecureToken returns a URL-safe, cryptographically random token
+// derived from byteLength random bytes (the encoded string is longer than
+// byteLength). Suitable for email verification and password reset tokens.
+func GenerateSecureToken(byteLength int) (string, error) {
+	bytes := make([]byte, byteLength)
+	if _, err := rand.Read(bytes); err != nil {
+		return "", err
+	}
+	return base64.RawURLEncoding.EncodeToString(bytes), nil
+}
+
 // GenerateRandomPassword generates a cryptographically secure random password
 func GenerateRandomPassword(length int) (string, error) {
 	// Generate random bytes

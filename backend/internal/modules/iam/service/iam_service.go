@@ -3,6 +3,7 @@ package service
 import (
 	"context"
 	"fmt"
+	"time"
 
 	"github.com/google/uuid"
 	"github.com/saurav-lal-karn/moniq/backend/internal/database"
@@ -11,13 +12,27 @@ import (
 	"github.com/saurav-lal-karn/moniq/backend/internal/modules/iam/dto"
 	"github.com/saurav-lal-karn/moniq/backend/internal/modules/iam/model"
 	"github.com/saurav-lal-karn/moniq/backend/internal/modules/iam/repository"
+	workspaceDto "github.com/saurav-lal-karn/moniq/backend/internal/modules/workspace/dto"
+	workspaceModel "github.com/saurav-lal-karn/moniq/backend/internal/modules/workspace/model"
+	workspaceService "github.com/saurav-lal-karn/moniq/backend/internal/modules/workspace/service"
 	"github.com/saurav-lal-karn/moniq/backend/pkg/logger"
+	"github.com/saurav-lal-karn/moniq/backend/pkg/mailer"
 	"golang.org/x/crypto/bcrypt"
 )
 
+const (
+	// emailVerificationTTL is how long a verification token stays valid.
+	emailVerificationTTL = 24 * time.Hour
+	// emailVerificationTokenBytes is the entropy of the verification token.
+	emailVerificationTokenBytes = 32
+)
+
 type iamService struct {
-	txm  *database.TxManager
-	repo repository.IAMRepository
+	txm        *database.TxManager
+	repo       repository.IAMRepository
+	workspace  workspaceService.WorkspaceService
+	mailer     mailer.Mailer
+	appBaseURL string
 }
 
 type IAMService interface {
@@ -29,10 +44,13 @@ type IAMService interface {
 }
 
 // NewIAMService creates a new instance of the IAMService.
-func NewIAMService(txm *database.TxManager, repo repository.IAMRepository) IAMService {
+func NewIAMService(txm *database.TxManager, repo repository.IAMRepository, workspace workspaceService.WorkspaceService, mail mailer.Mailer, appBaseURL string) IAMService {
 	return &iamService{
-		txm:  txm,
-		repo: repo,
+		txm:        txm,
+		repo:       repo,
+		workspace:  workspace,
+		mailer:     mail,
+		appBaseURL: appBaseURL,
 	}
 }
 
@@ -71,19 +89,72 @@ func (s *iamService) Register(ctx context.Context, createUserRequest *dto.Regist
 		AuthProviderUserID: createUserRequest.Email,
 	}
 
-	// Persist the user and their auth identifier atomically — if either write
-	// fails the whole registration is rolled back.
+	// Generate a single-use email verification token. Generated before the
+	// transaction since it's pure CPU work and shouldn't hold a connection.
+	token, err := helper.GenerateSecureToken(emailVerificationTokenBytes)
+	if err != nil {
+		return fmt.Errorf("failed to generate verification token: %w", err)
+	}
+
+	verification := &model.UserEmailVerification{
+		BaseModel: baseModel.BaseModel{ID: uuid.New()},
+		UserID:    user.ID,
+		Token:     token,
+		ExpiresAt: time.Now().Add(emailVerificationTTL),
+	}
+
+	// Persist the user, their auth identifier, a default personal workspace and
+	// the verification token atomically — if any write fails the whole
+	// registration is rolled back. The workspace service runs its own nested
+	// Run, which joins this one.
 	if err := s.txm.Run(ctx, func(ctx context.Context) error {
 		if err := s.repo.Create(ctx, user); err != nil {
 			return err
 		}
-		return s.repo.CreateAuthIdentities(ctx, authIdentifer)
+		if err := s.repo.CreateAuthIdentities(ctx, authIdentifer); err != nil {
+			return err
+		}
+		if err := s.repo.CreateEmailVerification(ctx, verification); err != nil {
+			return err
+		}
+
+		_, err := s.workspace.Create(ctx, workspaceDto.CreateWorkspaceRequestDTO{
+			Name:    createUserRequest.FirstName + "'s Personal Workspace",
+			Type:    workspaceModel.PersonalWorkspace,
+			OwnerID: user.ID,
+		})
+		return err
 	}); err != nil {
 		return err
 	}
 
+	// Send the verification email only after the transaction commits, so we
+	// never email a link for a registration that was rolled back. A delivery
+	// failure shouldn't fail the registration — the user already exists and can
+	// request a resend — so it's logged rather than returned.
+	if err := s.sendVerificationEmail(ctx, user, token); err != nil {
+		logger.Error("failed to send verification email",
+			logger.StringField("Email", user.Email), logger.ErrorField(err))
+	}
+
 	logger.Info("Registering user with email: %s", logger.StringField("Email", createUserRequest.Email))
 	return nil
+}
+
+// sendVerificationEmail composes and dispatches the email verification message.
+// The concrete delivery mechanism (terminal log vs. real provider) is decided
+// by the injected mailer.
+func (s *iamService) sendVerificationEmail(ctx context.Context, user *model.User, token string) error {
+	verifyURL := fmt.Sprintf("%s/api/v1/auth/verify-email?token=%s", s.appBaseURL, token)
+
+	return s.mailer.Send(ctx, mailer.Email{
+		To:      user.Email,
+		Subject: "Verify your Moniq email address",
+		TextBody: fmt.Sprintf(
+			"Hi %s,\n\nWelcome to Moniq! Please verify your email address by opening the link below:\n\n%s\n\nThis link expires in %d hours.",
+			user.FirstName, verifyURL, int(emailVerificationTTL.Hours()),
+		),
+	})
 }
 
 func (s *iamService) GetByID(ctx context.Context, id string) (*model.User, error) {
