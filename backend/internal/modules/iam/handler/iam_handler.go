@@ -48,3 +48,23 @@ func (h *iamHandler) Register(ctx *gin.Context) {
 
 	helper.SuccessResponse(ctx, http.StatusCreated, "Registered successfully", nil)
 }
+
+// Lgin godoc
+// 
+// @Summary Login user
+// @Description Login a user
+// @Tags Auth
+// @Accept json
+// @Produce json
+// @Param request body dto.LoginRequestDTO true "Login Request"
+// @Success 201 {object} helper.Response
+// @Failure 400 {object} helper.Response
+// @Router /auth/login [post]
+func(h *iamHandler) Login(ctx *gin.Context) {
+	var req dto.LoginRequestDTO
+	if err := ctx.ShouldBindJSON(&req); err != nil {
+		helper.ErrorResponse(ctx, http.StatusBadRequest, helper.FormatValidationError(err))
+		return
+	}
+	helper.SuccessResponse(ctx, http.StatusOK, "User logged in successfully", nil)
+}

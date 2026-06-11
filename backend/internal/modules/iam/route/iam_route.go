@@ -27,6 +27,7 @@ func RegisterIamRoutes(route *gin.RouterGroup, txm *database.TxManager, cfg *con
 
 	authRoutes := route.Group("auth")
 	authRoutes.POST("/register", iamHandler.Register)
+	authRoutes.POST("/login", iamHandler.Login)
 
 	// Define other IAM-related routes here (e.g., login, user management, etc.)
 }
