@@ -1,65 +1,175 @@
 package jwt
 
 import (
-	"errors"
 	"fmt"
+	"net/http"
 	"time"
 
+	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt/v5"
+	"github.com/google/uuid"
+	"github.com/saurav-lal-karn/moniq/backend/internal/helper"
 )
 
-var (
-	ErrInvalidToken = errors.New("invalid token")
-	ErrExpiredToken = errors.New("token has expired")
-)
+// jwt payload
+type JWTPayload struct {
+	AccessToken string `json:"access_token,omitempty"`
+	RefreshToken string `json:"refresh_token,omitempty"`
+}
+
+type JWTParameters struct {
+	AccessKey []byte
+	AccessKeyTTL int
+	RefreshKey []byte
+	RefreshKeyTTL int
+}
+
+// Exported variable
+var JWTParams JWTParameters
 
 // Claims represents the JWT claims
-type Claims struct {
+type MyClaims struct {
 	UserID string `json:"user_id"`
 	Email string `json:"email,omitempty"`
+	Role string `json:"role,omitempty"`
+}
+
+type JWTClaims struct {
+	MyClaims
 	jwt.RegisteredClaims
 }
 
-// GenerateToken generates a JWT token for a specific user ID with an expiration duration.
-func GenerateToken(userID string, secret string, durationHours int) (string, error) {
-	claims := Claims{
-		UserID: userID,
-		RegisteredClaims: jwt.RegisteredClaims{
-			ExpiresAt: jwt.NewNumericDate(time.Now().Add(time.Duration(durationHours) * time.Hour)),
+// Validate Access JWT
+func ValidateAccessJWT(token *jwt.Token) (interface{}, error){
+	if _, err := token.Method.(*jwt.SigningMethodHMAC); !err {
+		return nil, fmt.Errorf("unexpected signing method: %v", token.Header["alg"])
+	}
+	return JWTParams.AccessKey, nil
+}
+
+// Validate Refrest JWT
+func ValidateRefreshJWT(token *jwt.Token) (interface{}, error){
+	if _, err := token.Method.(*jwt.SigningMethodHMAC); !err {
+		return nil, fmt.Errorf("unexpected signing method: %v", token.Header["alg"])
+	}
+	return JWTParams.RefreshKey, nil
+}
+
+func ValidateAccessToken(tokenString string) (*MyClaims, error) {
+	token, err := jwt.ParseWithClaims(tokenString, &JWTClaims{}, ValidateAccessJWT)
+	if err != nil {
+		return nil, err
+	}
+
+	if claims, ok := token.Claims.(*JWTClaims); ok && token.Valid {
+		return &claims.MyClaims, nil
+	}
+
+	return nil, helper.ErrInvalidToken
+}
+
+func ValidateRefreshToken(tokenString string) (*MyClaims, error) {
+	token, err := jwt.ParseWithClaims(tokenString, &JWTClaims{}, ValidateRefreshJWT)
+	if err != nil {
+		return nil, err
+	}
+
+	if claims, ok := token.Claims.(*JWTClaims); ok && token.Valid {
+		return &claims.MyClaims, nil
+	}
+
+	return nil, helper.ErrInvalidToken
+}
+
+// Issue new tokens
+func GenerateToken(claims MyClaims, tokenType string) (string, *JWTClaims, error) {
+	var (
+		key []byte
+		ttl int
+	)
+
+	if tokenType == "access" {
+		key = JWTParams.AccessKey
+		ttl = JWTParams.AccessKeyTTL
+	}
+
+	if tokenType == "refresh" {
+		key = JWTParams.RefreshKey
+		ttl = JWTParams.RefreshKeyTTL
+	}
+
+	// Create the claims
+	createdClaims := JWTClaims {
+		MyClaims{
+			UserID: claims.UserID,
+			Email: claims.Email,
+			Role: claims.Role,
+		},
+		jwt.RegisteredClaims{
+			ExpiresAt: jwt.NewNumericDate(time.Now().Add(time.Minute * time.Duration(ttl))),
+			ID:        uuid.NewString(),
 			IssuedAt:  jwt.NewNumericDate(time.Now()),
-			NotBefore: jwt.NewNumericDate(time.Now()),
 		},
 	}
 
-	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
-	tokenString, err := token.SignedString([]byte(secret))
-	if err != nil {
-		return "", fmt.Errorf("failed to sign token: %w", err)
-	}
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, createdClaims)
 
-	return tokenString, nil
+	jwtValue, err := token.SignedString(key)
+	if err != nil {
+		return "", nil, err
+	}
+	return jwtValue, &createdClaims, nil
 }
 
-// ValidateToken validates the JWT token string and returns the userID if valid.
-func ValidateToken(tokenStr string, secret string) (string, error) {
-	token, err := jwt.ParseWithClaims(tokenStr, &Claims{}, func(token *jwt.Token) (interface{}, error) {
-		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
-			return nil, fmt.Errorf("unexpected signing method: %v", token.Header["alg"])
-		}
-		return []byte(secret), nil
+type CookieKey string
+
+const (
+	AccessTokenKey  CookieKey = "access_token"
+	RefreshTokenKey CookieKey = "refresh_token"
+)
+
+// Set HttpOnly cookies with secure flag if using HTTPS
+func SetCookies(c *gin.Context, accessToken string, refreshToken string) {
+	http.SetCookie(c.Writer, &http.Cookie{
+		Name:     string(AccessTokenKey),
+		Value:    accessToken,
+		Expires:  time.Now().Add(time.Minute * time.Duration(JWTParams.AccessKeyTTL)),
+		HttpOnly: true,
+		Secure:   c.Request.TLS != nil,
+		Path:     "/",
 	})
-
-	if err != nil {
-		if errors.Is(err, jwt.ErrTokenExpired) {
-			return "", ErrExpiredToken
-		}
-		return "", ErrInvalidToken
-	}
-
-	claims, ok := token.Claims.(*Claims)
-	if !ok || !token.Valid {
-		return "", ErrInvalidToken
-	}
-
-	return claims.UserID, nil
+	http.SetCookie(c.Writer, &http.Cookie{
+		Name:     string(RefreshTokenKey),
+		Value:    refreshToken,
+		Expires:  time.Now().Add(time.Minute * time.Duration(JWTParams.RefreshKeyTTL)),
+		HttpOnly: true,
+		Secure:   c.Request.TLS != nil,
+		Path:     "/",
+	})
 }
+
+// Clear HttpOnly cookies with secure flag if using HTTPS
+func ClearCookies(c *gin.Context) {
+	http.SetCookie(c.Writer, &http.Cookie{
+		Name:     string(AccessTokenKey),
+		Value:    "",
+		MaxAge:   -1,
+		HttpOnly: true,
+		Secure:   c.Request.TLS != nil,
+		Path:     "/",
+	})
+	http.SetCookie(c.Writer, &http.Cookie{
+		Name:     string(RefreshTokenKey),
+		Value:    "",
+		MaxAge:   -1,
+		HttpOnly: true,
+		Secure:   c.Request.TLS != nil,
+		Path:     "/",
+	})
+}
+
+type ContextKey string
+
+const (
+	DatabaseKey ContextKey = "database"
+)

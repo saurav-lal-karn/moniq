@@ -57,7 +57,7 @@ func (h *iamHandler) Register(ctx *gin.Context) {
 // @Accept json
 // @Produce json
 // @Param request body dto.LoginRequestDTO true "Login Request"
-// @Success 201 {object} helper.Response
+// @Success 201 {object} dto.LoginResponseDTO
 // @Failure 400 {object} helper.Response
 // @Router /auth/login [post]
 func(h *iamHandler) Login(ctx *gin.Context) {
@@ -66,5 +66,14 @@ func(h *iamHandler) Login(ctx *gin.Context) {
 		helper.ErrorResponse(ctx, http.StatusBadRequest, helper.FormatValidationError(err))
 		return
 	}
-	helper.SuccessResponse(ctx, http.StatusOK, "User logged in successfully", nil)
+
+	response, err := h.service.Login(ctx, &req)
+	if err != nil {
+		logger.Error("Failed to login", logger.ErrorField(err))
+		helper.ErrorResponse(ctx, http.StatusUnauthorized, err.Error())
+		return
+	}
+
+
+	helper.SuccessResponse(ctx, http.StatusOK, "User logged in successfully", response)
 }

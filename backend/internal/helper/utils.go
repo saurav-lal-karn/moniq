@@ -2,11 +2,21 @@ package helper
 
 import (
 	"crypto/rand"
+	"crypto/sha256"
 	"encoding/base64"
+	"encoding/hex"
 	"log"
 	"os"
 	"strconv"
 )
+
+// SHA256Hex returns the hex-encoded SHA-256 digest of s. Used to store opaque
+// tokens (e.g. refresh tokens) as a non-reversible hash rather than in plain
+// text, so a database leak doesn't expose the tokens themselves.
+func SHA256Hex(s string) string {
+	sum := sha256.Sum256([]byte(s))
+	return hex.EncodeToString(sum[:])
+}
 
 func StringPtr(s string) *string {
 	return &s

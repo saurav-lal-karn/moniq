@@ -10,6 +10,13 @@ definitions:
     - email
     - password
     type: object
+  dto.LoginResponseDTO:
+    properties:
+      access_token:
+        type: string
+      refresh_token:
+        type: string
+    type: object
   dto.RegisterRequestDTO:
     properties:
       email:
@@ -65,7 +72,7 @@ paths:
         "201":
           description: Created
           schema:
-            $ref: '#/definitions/helper.Response'
+            $ref: '#/definitions/dto.LoginResponseDTO'
         "400":
           description: Bad Request
           schema:

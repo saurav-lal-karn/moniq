@@ -2,8 +2,12 @@ package repository
 
 import (
 	"context"
+	"errors"
+	"fmt"
 
+	"github.com/jackc/pgx/v5"
 	"github.com/saurav-lal-karn/moniq/backend/internal/database"
+	"github.com/saurav-lal-karn/moniq/backend/internal/helper"
 	iamModel "github.com/saurav-lal-karn/moniq/backend/internal/modules/iam/model"
 )
 
@@ -14,10 +18,11 @@ type iamRepository struct {
 type IAMRepository interface {
 	// Define methods for IAM-related database operations here
 	Create(ctx context.Context, user *iamModel.User) error
-	GetByEmail(ctx context.Context, email string) (*iamModel.User, error) // Added method to get user by email for login purposes
+	GetByEmail(ctx context.Context, email string) (*iamModel.User, *iamModel.AuthIdentifier, error) // Added method to get user by email for login purposes
 	CheckUserExists(ctx context.Context, email string) (bool, error) // Added method to check if a user already exists by email
 	CreateAuthIdentities(ctx context.Context, authIdentifier *iamModel.AuthIdentifier) error // Added method to create auth identifiers (e.g., password hash)
 	CreateEmailVerification(ctx context.Context, emailVetification *iamModel.UserEmailVerification) error
+	CreateUserSession(ctx context.Context, userSession *iamModel.UserSession) error
 }
 
 func NewIAMRepository(db database.DB) IAMRepository {
@@ -37,13 +42,40 @@ func (r *iamRepository) Create(ctx context.Context, user *iamModel.User) error {
 	return err
 }
 
-func (r *iamRepository) GetByEmail(ctx context.Context, email string) (*iamModel.User, error) {
-	row := r.db.Executor(ctx).QueryRow(ctx, "SELECT id, first_name, last_name, email, created_at, updated_at FROM users WHERE email = $1", email)
+func (r *iamRepository) GetByEmail(ctx context.Context, email string) (*iamModel.User, *iamModel.AuthIdentifier, error) {
+	query := `
+		SELECT 
+			users.id,
+			users.first_name,
+			users.last_name,
+			users.email,
+			users.email_verified,
+			users.profile_picture_url,
+			users.is_active,
+			users.role,
+			ais.password_hash,
+			ais.auth_provider,
+			ais.auth_provider_user_id
+		FROM public.users AS users
+		LEFT JOIN auth_identities AS ais ON users.id = ais.user_id 
+		WHERE users.email = $1
+		AND ais.deleted_at IS NULL
+	`
+	row := r.db.Executor(ctx).QueryRow(ctx, query, email)
 	var user iamModel.User
-	if err := row.Scan(&user.ID, &user.FirstName, &user.LastName, &user.Email, &user.CreatedAt, &user.UpdatedAt); err != nil {
-		return nil, err
+	var authIdentity iamModel.AuthIdentifier
+	if err := row.Scan(
+		&user.ID, &user.FirstName, &user.LastName, &user.Email, &user.EmailVerified, &user.ProfilePictureURL, &user.IsActive, &user.Role,
+		&authIdentity.PasswordHash, &authIdentity.AuthProvider, &authIdentity.AuthProviderUserID,
+	); err != nil {
+		if err != nil {
+			if errors.Is(err, pgx.ErrNoRows) {
+				return nil, nil, helper.ErrUserNotFound
+			}
+		return nil, nil, fmt.Errorf("failed to query user by email: %w", err)
 	}
-	return &user, nil // Return the found user
+	}
+	return &user, &authIdentity, nil // Return the found user
 }
 
 func (r *iamRepository) CheckUserExists(ctx context.Context, email string) (bool, error) {
@@ -67,5 +99,15 @@ func(r *iamRepository) CreateEmailVerification(ctx context.Context, emailVetific
 		VALUES ($1, $2, $3, $4)
 	`
 	_, err := r.db.Executor(ctx).Exec(ctx, query, emailVetification.ID, emailVetification.UserID, emailVetification.Token, emailVetification.ExpiresAt)
+	return err
+}
+
+func(r *iamRepository) CreateUserSession(ctx context.Context, userSession *iamModel.UserSession) error {
+	query := `
+		INSERT INTO user_sessions(id, user_id, refresh_token_hash, device_name, ip_address, user_agent, expires_at)
+		VALUES ($1, $2, $3, $4, $5, $6, $7)
+	`
+
+	_, err := r.db.Executor(ctx).Exec(ctx, query, userSession.ID, userSession.UserID, userSession.RefreshTokenHash, userSession.DeviceName, userSession.IPAddress, userSession.UserAgent, userSession.ExpiresAt)
 	return err
 }

@@ -15,6 +15,7 @@ import (
 	workspaceDto "github.com/saurav-lal-karn/moniq/backend/internal/modules/workspace/dto"
 	workspaceModel "github.com/saurav-lal-karn/moniq/backend/internal/modules/workspace/model"
 	workspaceService "github.com/saurav-lal-karn/moniq/backend/internal/modules/workspace/service"
+	"github.com/saurav-lal-karn/moniq/backend/pkg/jwt"
 	"github.com/saurav-lal-karn/moniq/backend/pkg/logger"
 	"github.com/saurav-lal-karn/moniq/backend/pkg/mailer"
 	"golang.org/x/crypto/bcrypt"
@@ -38,6 +39,7 @@ type iamService struct {
 type IAMService interface {
 	// Define methods for IAM-related business logic here
 	Register(ctx context.Context, user *dto.RegisterRequestDTO) error
+	Login(ctx context.Context, loginRequest *dto.LoginRequestDTO) (*dto.LoginResponseDTO, error)
 	GetByID(ctx context.Context, id string) (*model.User, error)
 	List(ctx context.Context) ([]*model.User, error)
 	Update(ctx context.Context, user *model.User) error
@@ -155,6 +157,70 @@ func (s *iamService) sendVerificationEmail(ctx context.Context, user *model.User
 			user.FirstName, verifyURL, int(emailVerificationTTL.Hours()),
 		),
 	})
+}
+
+func(s *iamService) Login(ctx context.Context, loginRequest *dto.LoginRequestDTO) (*dto.LoginResponseDTO, error) {
+	user, authIdentity, err := s.repo.GetByEmail(ctx, loginRequest.Email)
+	if err != nil {
+		return nil, err
+	}
+
+	if !user.EmailVerified {
+		return nil, helper.ErrEmailNotVerified
+	}
+
+	if !user.IsActive {
+		return nil, helper.ErrUserNotActive
+	}
+
+	logger.Info("User Auth", logger.StringField("Provider", authIdentity.AuthProvider))
+	if authIdentity.AuthProvider == helper.AuthProviderEmail {
+		// Handle the auth provider for email now
+		// Will handle other cases later
+		err = bcrypt.CompareHashAndPassword([]byte(*authIdentity.PasswordHash), []byte(loginRequest.Password))
+		if err != nil {
+			return nil, helper.ErrInvalidCredentials
+		}
+
+		claims := jwt.MyClaims {
+			UserID: user.ID.String(),
+			Email: user.Email,
+			Role: string(user.Role),
+		}
+
+		// Issue new access tokens
+		accessToken, _, err := jwt.GenerateToken(claims, "access")
+		if err != nil {
+			return nil, err
+		}
+
+		refreshToken, createdClaim, err := jwt.GenerateToken(claims, "refresh")
+		if err != nil {
+			return nil, err
+		}
+
+		// Persist the session keyed by a hash of the refresh token (never the
+		// token itself) so it can later be looked up, validated and revoked. The
+		// session expires when the refresh token does.
+		userSes := &model.UserSession{
+			BaseModel:        baseModel.BaseModel{ID: uuid.New()},
+			UserID:           user.ID,
+			RefreshTokenHash: helper.SHA256Hex(refreshToken),
+			ExpiresAt:        createdClaim.ExpiresAt.Time,
+		}
+
+		if err = s.repo.CreateUserSession(ctx, userSes); err != nil {
+			return nil, err
+		}
+
+		return &dto.LoginResponseDTO{
+			AccessToken:  accessToken,
+			RefreshToken: refreshToken,
+		}, nil
+	}
+
+	// No supported auth provider matched the identity on this account.
+	return nil, helper.ErrInvalidCredentials
 }
 
 func (s *iamService) GetByID(ctx context.Context, id string) (*model.User, error) {

@@ -7,7 +7,6 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/saurav-lal-karn/moniq/backend/pkg/jwt"
 	"golang.org/x/crypto/bcrypt"
 )
 
@@ -58,10 +57,10 @@ func (s *userService) Register(ctx context.Context, req SignUpRequest) (*UserRes
 	}
 
 	// Generate JWT for direct automatic login
-	token, err := jwt.GenerateToken(u.ID, s.jwtSecret, s.jwtExpiryHours)
-	if err != nil {
-		return nil, "", fmt.Errorf("failed to generate token after registration: %w", err)
-	}
+	// token, err := jwt.GenerateToken(u.ID, s.jwtSecret, s.jwtExpiryHours)
+	// if err != nil {
+	// 	return nil, "", fmt.Errorf("failed to generate token after registration: %w", err)
+	// }
 
 	res := &UserResponse{
 		ID:        u.ID,
@@ -71,7 +70,7 @@ func (s *userService) Register(ctx context.Context, req SignUpRequest) (*UserRes
 		UpdatedAt: u.UpdatedAt,
 	}
 
-	return res, token, nil
+	return res, "", nil
 }
 
 // Login validates user credentials and returns a JWT token.
@@ -91,12 +90,13 @@ func (s *userService) Login(ctx context.Context, req LoginRequest) (string, erro
 	}
 
 	// Generate JWT
-	token, err := jwt.GenerateToken(u.ID, s.jwtSecret, s.jwtExpiryHours)
-	if err != nil {
-		return "", fmt.Errorf("failed to generate token on login: %w", err)
-	}
+	// token, err := jwt.GenerateToken(u.ID, s.jwtSecret, s.jwtExpiryHours)
+	// if err != nil {
+	// 	return "", fmt.Errorf("failed to generate token on login: %w", err)
+	// }
 
-	return token, nil
+	// return token, nil
+	return "", nil
 }
 
 // GetProfile retrieves a user's details and filters out sensitive fields.
