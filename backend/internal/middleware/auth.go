@@ -23,7 +23,7 @@ func Auth() gin.HandlerFunc {
 		if tokenString == "" {
 			authHeader := ctx.GetHeader("Authorization")
 			if authHeader != "" && strings.HasPrefix(authHeader, "Bearer") {
-				tokenString = strings.TrimPrefix(authHeader, "Bearer")
+				tokenString = strings.TrimPrefix(authHeader, "Bearer ")
 			}
 		}
 

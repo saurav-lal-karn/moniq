@@ -23,6 +23,9 @@ type IAMRepository interface {
 	CreateAuthIdentities(ctx context.Context, authIdentifier *iamModel.AuthIdentifier) error // Added method to create auth identifiers (e.g., password hash)
 	CreateEmailVerification(ctx context.Context, emailVetification *iamModel.UserEmailVerification) error
 	CreateUserSession(ctx context.Context, userSession *iamModel.UserSession) error
+	GetUserSessionByHash(ctx context.Context, userID string, tokenHash string) (*iamModel.UserSession, error)
+	RevokeRefreshToken(ctx context.Context, userID string, tokenHash string) error
+	RevokeAllRefreshTokenForUser(ctx context.Context, userID string) error
 }
 
 func NewIAMRepository(db database.DB) IAMRepository {
@@ -109,5 +112,35 @@ func(r *iamRepository) CreateUserSession(ctx context.Context, userSession *iamMo
 	`
 
 	_, err := r.db.Executor(ctx).Exec(ctx, query, userSession.ID, userSession.UserID, userSession.RefreshTokenHash, userSession.DeviceName, userSession.IPAddress, userSession.UserAgent, userSession.ExpiresAt)
+	return err
+}
+
+func (r *iamRepository) GetUserSessionByHash(ctx context.Context, userID string, tokenHash string) (*iamModel.UserSession, error) {
+	query := `
+		SELECT * FROM user_sessions WHERE user_id = $1 AND refresh_token_hash = $2
+	`
+	row := r.db.Executor(ctx).QueryRow(ctx, query, userID, tokenHash)
+	var user_session iamModel.UserSession
+	if err := row.Scan(
+		&user_session.ID, &user_session.UserID, &user_session.RefreshTokenHash,
+	); err != nil {
+		return nil, err
+	}
+	return &user_session, nil
+}
+
+func (r *iamRepository) RevokeRefreshToken(ctx context.Context, userID string, tokenHash string) error {
+	query := `
+		DELETE FROM user_sessions WHERE user_id = $1 AND refresh_token_hash = $2
+	`
+	_, err := r.db.Executor(ctx).Exec(ctx, query, userID, tokenHash)
+	return err
+}
+
+func (r *iamRepository) RevokeAllRefreshTokenForUser(ctx context.Context, userID string) error {
+	query := `
+		DELETE FROM user_sessions WHERE user_id = $1
+	`
+	_, err := r.db.Executor(ctx).Exec(ctx, query, userID)
 	return err
 }

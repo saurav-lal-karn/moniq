@@ -17,6 +17,20 @@ definitions:
       refresh_token:
         type: string
     type: object
+  dto.RefreshRequestDTO:
+    properties:
+      refresh_token:
+        type: string
+    required:
+    - refresh_token
+    type: object
+  dto.RefreshResponseDTO:
+    properties:
+      access_token:
+        type: string
+      refresh_token:
+        type: string
+    type: object
   dto.RegisterRequestDTO:
     properties:
       email:
@@ -99,6 +113,32 @@ paths:
       security:
       - BearerAuth: []
       summary: Me
+      tags:
+      - Auth
+  /auth/refresh:
+    post:
+      consumes:
+      - application/json
+      description: Refresh token for user
+      parameters:
+      - description: Refresh token Request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/dto.RefreshRequestDTO'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/dto.RefreshResponseDTO'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/helper.Response'
+      summary: Refresh token
       tags:
       - Auth
   /auth/register:

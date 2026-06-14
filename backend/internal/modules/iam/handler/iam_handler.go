@@ -78,6 +78,33 @@ func(h *iamHandler) Login(ctx *gin.Context) {
 	helper.SuccessResponse(ctx, http.StatusOK, "User logged in successfully", response)
 }
 
+// Refresh godoc
+// 
+// @Summary Refresh token
+// @Description Refresh token for user
+// @Tags Auth
+// @Accept json
+// @Produce json
+// @Param request body dto.RefreshRequestDTO true "Refresh token Request"
+// @Success 201 {object} dto.RefreshResponseDTO
+// @Failure 400 {object} helper.Response
+// @Router /auth/refresh [post]
+func(h *iamHandler) Refresh(ctx *gin.Context){
+	var req dto.RefreshRequestDTO
+	if err := ctx.ShouldBindJSON(&req); err != nil {
+		helper.ErrorResponse(ctx, http.StatusBadRequest, helper.FormatValidationError(err))
+		return
+	}
+
+	response, err := h.service.Refresh(ctx, req.RefreshToken)
+	if err != nil {
+		helper.ErrorResponse(ctx, http.StatusUnauthorized, err.Error())
+		return
+	}
+
+	helper.SuccessResponse(ctx, http.StatusOK, "Token refreshed", response)
+}
+
 // Me godoc
 // 
 // @Summary Me
@@ -90,6 +117,17 @@ func(h *iamHandler) Login(ctx *gin.Context) {
 // @Failure 400 {object} helper.Response
 // @Router /auth/me [get]
 func(h *iamHandler) Me(ctx *gin.Context){
-	logger.Info("Getting the logged in user details")
+	userID, exists := ctx.Get("userID")
+	if !exists {
+		helper.ErrorResponse(ctx, http.StatusUnauthorized, "User ID not found in context")
+	}
+
+	userIDStr, ok := userID.(string)
+	if !ok {
+		helper.ErrorResponse(ctx, http.StatusInternalServerError, "Invalid user ID type")
+		return
+	}
+
+	logger.Info("Getting the logged in user details", logger.StringField("UserId", userIDStr))
 	helper.SuccessResponse(ctx, http.StatusOK, "Details fetched successfully", nil)
 }

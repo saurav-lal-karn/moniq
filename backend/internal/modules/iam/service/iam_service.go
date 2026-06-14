@@ -43,6 +43,7 @@ type IAMService interface {
 	GetByID(ctx context.Context, id string) (*model.User, error)
 	List(ctx context.Context) ([]*model.User, error)
 	Update(ctx context.Context, user *model.User) error
+	Refresh(ctx context.Context, refreshToken string) (*dto.RefreshResponseDTO, error)
 }
 
 // NewIAMService creates a new instance of the IAMService.
@@ -233,4 +234,66 @@ func (s *iamService) List(ctx context.Context) ([]*model.User, error) {
 
 func (s *iamService) Update(ctx context.Context, user *model.User) error {
 	return nil // Placeholder return statement
+}
+
+func (s *iamService) Refresh(ctx context.Context, refreshToken string) (*dto.RefreshResponseDTO, error) {
+	claims, err := jwt.ValidateRefreshToken(refreshToken)
+	if err != nil {
+		return nil, err
+	}
+
+	// Create new claims
+	newClaims := jwt.MyClaims{
+		UserID: claims.UserID,
+		Email: claims.Email,
+		Role: claims.Role,
+	}
+
+	userID, err := uuid.Parse(claims.UserID)
+	if err != nil {
+		return nil, helper.ErrInvalidUUID
+	}
+
+	// Check if token exists in the user session
+	hashToken := helper.SHA256Hex(refreshToken)
+	_, err = s.repo.GetUserSessionByHash(ctx, claims.UserID, hashToken)
+	if err != nil {
+		return nil, helper.ErrInvalidRefreshToken
+	}
+
+	// Revoke the earlier token
+	err = s.repo.RevokeRefreshToken(ctx, claims.UserID, hashToken)
+	if err != nil {
+		return nil, err
+	}
+
+	// Issue new access token
+	// Issue new access tokens
+	accessToken, _, err := jwt.GenerateToken(newClaims, "access")
+	if err != nil {
+		return nil, err
+	}
+
+	// Issue new refresh token
+	refreshToken, createdClaim, err := jwt.GenerateToken(newClaims, "refresh")
+	if err != nil {
+		return nil, err
+	}
+
+	// Store the new session
+	userSes := &model.UserSession{
+		BaseModel:        baseModel.BaseModel{ID: uuid.New()},
+		UserID:           userID,
+		RefreshTokenHash: helper.SHA256Hex(refreshToken),
+		ExpiresAt:        createdClaim.ExpiresAt.Time,
+	}
+
+	if err = s.repo.CreateUserSession(ctx, userSes); err != nil {
+		return nil, err
+	}
+
+	return &dto.RefreshResponseDTO{
+		AccessToken: accessToken,
+		RefreshToken: refreshToken,
+	}, nil
 }

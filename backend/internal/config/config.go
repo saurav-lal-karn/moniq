@@ -3,9 +3,9 @@ package config
 import (
 	"log/slog"
 	"os"
-	"strconv"
 
 	"github.com/joho/godotenv"
+	"github.com/saurav-lal-karn/moniq/backend/internal/helper"
 )
 
 // Config holds all configuration values for the application.
@@ -20,8 +20,10 @@ type Config struct {
 	DatabaseName	 string
 	DatabaseSSLMode string
 	RedisURL       string
-	JWTSecret      string
-	JWTExpiryHours int
+	AccessKey string
+	RefreshKey string
+	AccessKeyTTL int
+	RefreshKeyTTL int
 
 	// AppBaseURL is the public base URL of the API, used to build links sent in
 	// emails (e.g. the email verification link).
@@ -41,24 +43,21 @@ func LoadConfig() (*Config, error) {
 		slog.Info("No .env file found, relying on system environment variables")
 	}
 
-	jwtExpiryHours, err := strconv.Atoi(getEnv("JWT_EXPIRY_HOURS", "24"))
-	if err != nil {
-		jwtExpiryHours = 24
-	}
-
 	cfg := &Config{
 		Port:           getEnv("PORT", "8080"),
 		Env:            getEnv("ENV", "development"),
 		LogLevel:       getEnv("LOG_LEVEL", "info"),
 		RedisURL:       getEnv("REDIS_URL", "redis://localhost:6379/0"),
-		JWTSecret:      getEnv("JWT_SECRET", "moniq-super-secret-key-change-me-in-production"),
-		JWTExpiryHours: jwtExpiryHours,
+		AccessKey: 		getEnv("ACCESS_KEY", "jwt-access-key"),
+		RefreshKey: 	getEnv("REFRESH_KEY", "jwt-refresh-key"),
+		AccessKeyTTL: 	helper.GetEnvAsInt("ACCESS_KEY_TTL", 1000),
+		RefreshKeyTTL: 	helper.GetEnvAsInt("REFRESH_KEY_TTL", 86400),
 		DatabaseHost:   getEnv("DB_HOST", "localhost"),
 		DatabasePort:   getEnv("DB_PORT", "5432"),
 		DatabaseUser:   getEnv("DB_USER", "postgres"),
-		DatabasePassword: getEnv("DB_PASSWORD", "postgres"),
+		DatabasePassword: 	getEnv("DB_PASSWORD", "postgres"),
 		DatabaseName:   getEnv("DB_NAME", "moniq"),
-		DatabaseSSLMode: getEnv("DB_SSL_MODE", "disable"),
+		DatabaseSSLMode: 	getEnv("DB_SSL_MODE", "disable"),
 		AppBaseURL:     getEnv("APP_BASE_URL", "http://localhost:8080"),
 		EmailAPIKey:    getEnv("EMAIL_API_KEY", ""),
 		EmailFrom:      getEnv("EMAIL_FROM", "Moniq <no-reply@moniq.app>"),

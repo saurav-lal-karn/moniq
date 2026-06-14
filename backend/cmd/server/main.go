@@ -74,6 +74,9 @@ func main() {
 		gin.SetMode(gin.DebugMode)
 	}
 
+	// Initialize jwt
+	config.InitJWTParams(cfg)
+
 	// 8. Initialize router
 	r := routes.SetupRouter(cfg, db, rdb)
 
