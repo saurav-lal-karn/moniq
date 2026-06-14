@@ -1,32 +1,57 @@
 package middleware
 
-// // Auth returns a Gin middleware that enforces JWT authentication.
-// func Auth(jwtSecret string) gin.HandlerFunc {
-// 	return func(c *gin.Context) {
-// 		authHeader := c.GetHeader("Authorization")
-// 		if authHeader == "" {
-// 			c.JSON(http.StatusUnauthorized, gin.H{"error": "Authorization header is required"})
-// 			c.Abort()
-// 			return
-// 		}
+import (
+	"net/http"
+	"strings"
 
-// 		parts := strings.SplitN(authHeader, " ", 2)
-// 		if !(len(parts) == 2 && parts[0] == "Bearer") {
-// 			c.JSON(http.StatusUnauthorized, gin.H{"error": "Authorization header format must be Bearer {token}"})
-// 			c.Abort()
-// 			return
-// 		}
+	"github.com/gin-gonic/gin"
+	"github.com/saurav-lal-karn/moniq/backend/internal/helper"
+	"github.com/saurav-lal-karn/moniq/backend/pkg/jwt"
+)
 
-// 		tokenStr := parts[1]
-// 		userID, err := jwt.ValidateToken(tokenStr, jwtSecret)
-// 		if err != nil {
-// 			c.JSON(http.StatusUnauthorized, gin.H{"error": err.Error()})
-// 			c.Abort()
-// 			return
-// 		}
+func Auth() gin.HandlerFunc {
+	return func(ctx *gin.Context) {
+		var tokenString string
 
-// 		// Attach authenticated user ID to request context
-// 		c.Set("userID", userID)
-// 		c.Next()
-// 	}
-// }
+		// Get the token from the cookie
+		accessToken, err := ctx.Cookie(string(jwt.AccessTokenKey))
+		if err == nil {
+			tokenString = accessToken
+		}
+
+		// If not in cokkie, get from authorization header
+		if tokenString == "" {
+			authHeader := ctx.GetHeader("Authorization")
+			if authHeader != "" && strings.HasPrefix(authHeader, "Bearer") {
+				tokenString = strings.TrimPrefix(authHeader, "Bearer")
+			}
+		}
+
+		// If not found, try query parameter -> for websocket
+		if tokenString == ""{
+			tokenString = ctx.Query("token")
+		}
+
+		// If still not found, return the error response for unauthorized
+		if tokenString == "" {
+			helper.ErrorResponse(ctx, http.StatusUnauthorized, "Unauthorized: No token provided")
+			ctx.Abort()
+			return 
+		}
+
+		// Validate the token
+		claims, err := jwt.ValidateAccessToken(tokenString)
+		if err != nil {
+			helper.ErrorResponse(ctx, http.StatusUnauthorized, "Unauthorize: Invalid or expired token")
+			ctx.Abort()
+			return 
+		} 
+
+		// Set the userId in context
+		ctx.Set("userID", claims.UserID)
+		ctx.Set("email", claims.Email)
+		ctx.Set("Role", claims.Role)
+
+		ctx.Next()
+	}
+}

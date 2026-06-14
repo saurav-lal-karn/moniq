@@ -49,7 +49,7 @@ func (h *iamHandler) Register(ctx *gin.Context) {
 	helper.SuccessResponse(ctx, http.StatusCreated, "Registered successfully", nil)
 }
 
-// Lgin godoc
+// Login godoc
 // 
 // @Summary Login user
 // @Description Login a user
@@ -76,4 +76,20 @@ func(h *iamHandler) Login(ctx *gin.Context) {
 
 
 	helper.SuccessResponse(ctx, http.StatusOK, "User logged in successfully", response)
+}
+
+// Me godoc
+// 
+// @Summary Me
+// @Description Details of logged in user
+// @Tags Auth
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Success 201 {object} dto.LoginResponseDTO
+// @Failure 400 {object} helper.Response
+// @Router /auth/me [get]
+func(h *iamHandler) Me(ctx *gin.Context){
+	logger.Info("Getting the logged in user details")
+	helper.SuccessResponse(ctx, http.StatusOK, "Details fetched successfully", nil)
 }

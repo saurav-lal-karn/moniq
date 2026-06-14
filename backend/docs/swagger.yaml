@@ -80,6 +80,27 @@ paths:
       summary: Login user
       tags:
       - Auth
+  /auth/me:
+    get:
+      consumes:
+      - application/json
+      description: Details of logged in user
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/dto.LoginResponseDTO'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/helper.Response'
+      security:
+      - BearerAuth: []
+      summary: Me
+      tags:
+      - Auth
   /auth/register:
     post:
       consumes:
