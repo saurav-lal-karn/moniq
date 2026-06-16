@@ -40,7 +40,7 @@ func (w *workspaceMemberRepository) AddMemberToWorkspace(ctx context.Context, me
 
 // ListMemberInWorkspace implements WorkspaceMemberRepository.
 func (w *workspaceMemberRepository) ListMemberInWorkspace(ctx context.Context, workspaceID uuid.UUID) ([]*workspaceModel.WorkspaceMember, error) {
-	rows, err := w.db.Executor(ctx).Query(ctx, "SELECT * from workspace_members WHERE workspace_id = $1", workspaceID)
+	rows, err := w.db.Executor(ctx).Query(ctx, "SELECT id, user_id, workspace_id, role, created_by from workspace_members WHERE workspace_id = $1", workspaceID)
 	if err != nil {
 		return nil, err
 	}

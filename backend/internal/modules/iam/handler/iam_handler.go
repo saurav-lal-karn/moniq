@@ -7,6 +7,7 @@ import (
 	"github.com/saurav-lal-karn/moniq/backend/internal/helper"
 	"github.com/saurav-lal-karn/moniq/backend/internal/modules/iam/dto"
 	"github.com/saurav-lal-karn/moniq/backend/internal/modules/iam/service"
+	"github.com/saurav-lal-karn/moniq/backend/pkg/jwt"
 	"github.com/saurav-lal-karn/moniq/backend/pkg/logger"
 )
 
@@ -74,6 +75,8 @@ func(h *iamHandler) Login(ctx *gin.Context) {
 		return
 	}
 
+	// Store the token in cookies as well
+	jwt.SetCookies(ctx, response.AccessToken, response.RefreshToken)
 
 	helper.SuccessResponse(ctx, http.StatusOK, "User logged in successfully", response)
 }
@@ -102,7 +105,97 @@ func(h *iamHandler) Refresh(ctx *gin.Context){
 		return
 	}
 
+
+	// Store the token in cookies as well
+	jwt.SetCookies(ctx, response.AccessToken, response.RefreshToken)
+
 	helper.SuccessResponse(ctx, http.StatusOK, "Token refreshed", response)
+}
+
+// Logout godoc
+// 
+// @Summary Logout
+// @Description Logout the user
+// @Tags Auth
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param request body dto.LogoutRequestDTO true "Logout Request"
+// @Success 201 {object} helper.Response
+// @Failure 400 {object} helper.Response
+// @Router /auth/logout [post]
+func(h *iamHandler) Logout(ctx *gin.Context) {
+	userID, exists := ctx.Get("userID")
+	if !exists {
+		helper.ErrorResponse(ctx, http.StatusUnauthorized, "User ID not found in context")
+	}
+
+	userIDStr, ok := userID.(string)
+	if !ok {
+		helper.ErrorResponse(ctx, http.StatusInternalServerError, "Invalid user ID type")
+		return
+	}
+
+	var req dto.LogoutRequestDTO
+	if err := ctx.ShouldBindJSON(&req); err != nil {
+		helper.ErrorResponse(ctx, http.StatusBadRequest, helper.FormatValidationError(err))
+		return
+	}
+
+	refreshToken := req.RefreshToken
+	if refreshToken == "" {
+		// Try to get the refresh token from the cookies
+		if cookieToken, err := ctx.Cookie(string(jwt.RefreshTokenKey)); err == nil {
+			refreshToken = cookieToken
+		}
+	}
+
+	if refreshToken != "" {
+		err := h.service.Logout(ctx, userIDStr, req.RefreshToken)
+		if err != nil {
+			helper.ErrorResponse(ctx, http.StatusUnauthorized, err.Error())
+			return
+		}
+	}
+
+	// Clear cookies after the logout
+	jwt.ClearCookies(ctx)
+
+	helper.SuccessResponse(ctx, http.StatusOK, "Logout successful", nil)
+}
+
+// Logout godoc
+// 
+// @Summary Logout from all devices
+// @Description Logout the user from all devices
+// @Tags Auth
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Success 201 {object} helper.Response
+// @Failure 400 {object} helper.Response
+// @Router /auth/logout-all [get]
+func(h *iamHandler) LogoutFromAllDevices(ctx *gin.Context) {
+	userID, exists := ctx.Get("userID")
+	if !exists {
+		helper.ErrorResponse(ctx, http.StatusUnauthorized, "User ID not found in context")
+	}
+
+	userIDStr, ok := userID.(string)
+	if !ok {
+		helper.ErrorResponse(ctx, http.StatusInternalServerError, "Invalid user ID type")
+		return
+	}
+
+	err := h.service.LogoutFromAllDevices(ctx, userIDStr)
+	if err != nil {
+		helper.ErrorResponse(ctx, http.StatusUnauthorized, err.Error())
+		return
+	}
+
+	// Clear cookies after the logout
+	jwt.ClearCookies(ctx)
+	helper.SuccessResponse(ctx, http.StatusOK, "Logout successful from all devices", nil)
 }
 
 // Me godoc

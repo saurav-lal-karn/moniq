@@ -60,6 +60,85 @@ const docTemplate = `{
                 }
             }
         },
+        "/auth/logout": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Logout the user",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Auth"
+                ],
+                "summary": "Logout",
+                "parameters": [
+                    {
+                        "description": "Logout Request",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.LogoutRequestDTO"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/helper.Response"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/helper.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/auth/logout-all": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Logout the user from all devices",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Auth"
+                ],
+                "summary": "Logout from all devices",
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/helper.Response"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/helper.Response"
+                        }
+                    }
+                }
+            }
+        },
         "/auth/me": {
             "get": {
                 "security": [
@@ -197,6 +276,17 @@ const docTemplate = `{
                 "access_token": {
                     "type": "string"
                 },
+                "refresh_token": {
+                    "type": "string"
+                }
+            }
+        },
+        "dto.LogoutRequestDTO": {
+            "type": "object",
+            "required": [
+                "refresh_token"
+            ],
+            "properties": {
                 "refresh_token": {
                     "type": "string"
                 }

@@ -17,6 +17,13 @@ definitions:
       refresh_token:
         type: string
     type: object
+  dto.LogoutRequestDTO:
+    properties:
+      refresh_token:
+        type: string
+    required:
+    - refresh_token
+    type: object
   dto.RefreshRequestDTO:
     properties:
       refresh_token:
@@ -92,6 +99,55 @@ paths:
           schema:
             $ref: '#/definitions/helper.Response'
       summary: Login user
+      tags:
+      - Auth
+  /auth/logout:
+    post:
+      consumes:
+      - application/json
+      description: Logout the user
+      parameters:
+      - description: Logout Request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/dto.LogoutRequestDTO'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/helper.Response'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/helper.Response'
+      security:
+      - BearerAuth: []
+      summary: Logout
+      tags:
+      - Auth
+  /auth/logout-all:
+    get:
+      consumes:
+      - application/json
+      description: Logout the user from all devices
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/helper.Response'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/helper.Response'
+      security:
+      - BearerAuth: []
+      summary: Logout from all devices
       tags:
       - Auth
   /auth/me:

@@ -17,6 +17,11 @@ type LoginResponseDTO struct {
 	RefreshToken string `json:"refresh_token"`
 }
 
+type LogoutRequestDTO struct {
+	RefreshToken string `json:"refresh_token" binding:"required"`
+}
+
+
 type RefreshRequestDTO struct {
 	RefreshToken string `json:"refresh_token" binding:"required"`
 }

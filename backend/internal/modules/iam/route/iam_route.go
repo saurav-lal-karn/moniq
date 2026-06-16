@@ -35,6 +35,8 @@ func RegisterIamRoutes(route *gin.RouterGroup, txm *database.TxManager, cfg *con
 	// Protected routes for user
 	userRoutes := authRoutes.Group("/")
 	userRoutes.Use(middleware.Auth())
+	userRoutes.POST("/logout", iamHandler.Logout)
+	userRoutes.GET("/logout-all", iamHandler.LogoutFromAllDevices)
 	userRoutes.GET("/me", iamHandler.Me)
 
 	// Define other IAM-related routes here (e.g., login, user management, etc.)

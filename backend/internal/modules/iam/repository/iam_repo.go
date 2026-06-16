@@ -117,7 +117,7 @@ func(r *iamRepository) CreateUserSession(ctx context.Context, userSession *iamMo
 
 func (r *iamRepository) GetUserSessionByHash(ctx context.Context, userID string, tokenHash string) (*iamModel.UserSession, error) {
 	query := `
-		SELECT * FROM user_sessions WHERE user_id = $1 AND refresh_token_hash = $2
+		SELECT id, user_id, refresh_token_hash FROM user_sessions WHERE user_id = $1 AND refresh_token_hash = $2
 	`
 	row := r.db.Executor(ctx).QueryRow(ctx, query, userID, tokenHash)
 	var user_session iamModel.UserSession

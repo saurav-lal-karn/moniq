@@ -44,6 +44,8 @@ type IAMService interface {
 	List(ctx context.Context) ([]*model.User, error)
 	Update(ctx context.Context, user *model.User) error
 	Refresh(ctx context.Context, refreshToken string) (*dto.RefreshResponseDTO, error)
+	Logout(ctx context.Context, userID string, refreshToken string) error
+	LogoutFromAllDevices(ctx context.Context, userID string) error
 }
 
 // NewIAMService creates a new instance of the IAMService.
@@ -296,4 +298,27 @@ func (s *iamService) Refresh(ctx context.Context, refreshToken string) (*dto.Ref
 		AccessToken: accessToken,
 		RefreshToken: refreshToken,
 	}, nil
+}
+
+func (s *iamService) Logout(ctx context.Context, userID string, refreshToken string) error {
+	// Validate the refresh token
+	_, err := jwt.ValidateRefreshToken(refreshToken)
+	if err != nil {
+		return err
+	}
+
+	tokenHash := helper.SHA256Hex(refreshToken)
+	if err := s.repo.RevokeRefreshToken(ctx, userID, tokenHash); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (s *iamService) LogoutFromAllDevices(ctx context.Context, userID string) error {
+	if err := s.repo.RevokeAllRefreshTokenForUser(ctx, userID); err != nil {
+		return err
+	}
+
+	return nil
 }
