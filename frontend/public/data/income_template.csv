@@ -1,0 +1,4 @@
+title,amount,date,source,account,payment_method,payer,project,location,description,tags
+"Freelance Design",5000,2024-03-01,"Freelance","Main Wallet","Bank Transfer","Acme Corp","Brand Identity","Remote","Logo design project","[""design"", ""branding""]"
+"January Salary",80000,2024-03-31,"Salary","HDFC Bank","Direct Deposit","Tech Solutions Ltd","Work","Office","Monthly pay","[""salary""]"
+"Stock Dividend",1200,2024-03-15,"Investment","Zerodha","UPI","Reliance Industries","Portolio","Mumbai","Quarterly dividend","[""dividend"", ""stocks""]"
