@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/redis/go-redis/v9"
@@ -19,8 +20,16 @@ func SetupRouter(cfg *config.Config, db *pgxpool.Pool, rdb *redis.Client) *gin.E
 	txm := database.NewTxManager(db)
 
 	router := gin.New()
+
+	// Cors for router
+	corsConfig := cors.DefaultConfig()
+	corsConfig.AllowOrigins = []string{cfg.ClientUrl}
+	corsConfig.AllowCredentials = true
+	corsConfig.AllowHeaders = []string{"Authorization", "Content-Type"}
+
 	router.Use(middleware.Logger()) // Custom structured logging middleware
 	router.Use(gin.Recovery())      // Crash recovery
+	router.Use(cors.New(corsConfig))
 
 	// Standard Routes (Health and Readiness)
 	router.GET("/health", func(c *gin.Context) {

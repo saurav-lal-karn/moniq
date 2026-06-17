@@ -33,6 +33,7 @@ type Config struct {
 	EmailAPIKey string
 	// EmailFrom is the sender address used for outbound email.
 	EmailFrom string
+	ClientUrl string
 }
 
 // LoadConfig loads the configuration from environment variables.
@@ -61,6 +62,7 @@ func LoadConfig() (*Config, error) {
 		AppBaseURL:     getEnv("APP_BASE_URL", "http://localhost:8080"),
 		EmailAPIKey:    getEnv("EMAIL_API_KEY", ""),
 		EmailFrom:      getEnv("EMAIL_FROM", "Moniq <no-reply@moniq.app>"),
+		ClientUrl: 	getEnv("CLIENT_URL", "http://localhost:3000"),
 	}
 
 	return cfg, nil
