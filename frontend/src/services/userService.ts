@@ -13,13 +13,13 @@ export interface UpdateUserPayload {
 
 export const userService = {
     updateMe: async (data: UpdateUserPayload) => {
-        const response = await apiClient.put("/users/me", data);
+        const response = await apiClient.put("/auth/me", data);
         return response.data;
     },
     uploadAvatar: async (file: File) => {
         const formData = new FormData();
         formData.append("avatar", file);
-        const response = await apiClient.post("/users/me/avatar", formData, {
+        const response = await apiClient.post("/auth/me/avatar", formData, {
             headers: {
                 "Content-Type": "multipart/form-data",
             },

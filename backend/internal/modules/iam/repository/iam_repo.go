@@ -19,6 +19,7 @@ type IAMRepository interface {
 	// Define methods for IAM-related database operations here
 	Create(ctx context.Context, user *iamModel.User) error
 	GetByEmail(ctx context.Context, email string) (*iamModel.User, *iamModel.AuthIdentifier, error) // Added method to get user by email for login purposes
+	GetByID(ctx context.Context, id string) (*iamModel.User, error)
 	CheckUserExists(ctx context.Context, email string) (bool, error) // Added method to check if a user already exists by email
 	CreateAuthIdentities(ctx context.Context, authIdentifier *iamModel.AuthIdentifier) error // Added method to create auth identifiers (e.g., password hash)
 	CreateEmailVerification(ctx context.Context, emailVetification *iamModel.UserEmailVerification) error
@@ -79,6 +80,35 @@ func (r *iamRepository) GetByEmail(ctx context.Context, email string) (*iamModel
 	}
 	}
 	return &user, &authIdentity, nil // Return the found user
+}
+
+func (r *iamRepository) GetByID(ctx context.Context, id string) (*iamModel.User, error) {
+	query := `
+		SELECT 
+			users.id,
+			users.first_name,
+			users.last_name,
+			users.email,
+			users.email_verified,
+			users.profile_picture_url,
+			users.is_active,
+			users.role
+		FROM public.users AS users
+		WHERE users.id = $1
+	`
+	row := r.db.Executor(ctx).QueryRow(ctx, query, id)
+	var user iamModel.User
+	if err := row.Scan(
+		&user.ID, &user.FirstName, &user.LastName, &user.Email, &user.EmailVerified, &user.ProfilePictureURL, &user.IsActive, &user.Role,
+	); err != nil {
+		if err != nil {
+			if errors.Is(err, pgx.ErrNoRows) {
+				return nil, helper.ErrUserNotFound
+			}
+		return nil, fmt.Errorf("failed to query user by email: %w", err)
+	}
+	}
+	return &user, nil // Return the found user
 }
 
 func (r *iamRepository) CheckUserExists(ctx context.Context, email string) (bool, error) {

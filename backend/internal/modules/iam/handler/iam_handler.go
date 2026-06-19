@@ -213,6 +213,7 @@ func(h *iamHandler) Me(ctx *gin.Context){
 	userID, exists := ctx.Get("userID")
 	if !exists {
 		helper.ErrorResponse(ctx, http.StatusUnauthorized, "User ID not found in context")
+		return
 	}
 
 	userIDStr, ok := userID.(string)
@@ -221,6 +222,22 @@ func(h *iamHandler) Me(ctx *gin.Context){
 		return
 	}
 
+	user, err := h.service.GetByID(ctx, userIDStr)
+	if err != nil {
+		helper.ErrorResponse(ctx, http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	userResponse := dto.UserResponse{
+		ID: userIDStr,
+		FirstName: user.FirstName,
+		LastName: user.LastName,
+		Email: user.Email,
+		Role: string(user.Role),
+		IsActive: user.IsActive,
+		ProfilePictureUrl: user.ProfilePictureURL,
+	}
+
 	logger.Info("Getting the logged in user details", logger.StringField("UserId", userIDStr))
-	helper.SuccessResponse(ctx, http.StatusOK, "Details fetched successfully", nil)
+	helper.SuccessResponse(ctx, http.StatusOK, "Details fetched successfully", userResponse)
 }

@@ -227,7 +227,11 @@ func(s *iamService) Login(ctx context.Context, loginRequest *dto.LoginRequestDTO
 }
 
 func (s *iamService) GetByID(ctx context.Context, id string) (*model.User, error) {
-	return nil, nil // Placeholder return statement
+	user, err := s.repo.GetByID(ctx, id)
+	if err != nil {
+		return nil, err
+	}
+	return user, nil
 }
 
 func (s *iamService) List(ctx context.Context) ([]*model.User, error) {

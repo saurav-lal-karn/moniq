@@ -52,9 +52,9 @@ export default function UserDropdown() {
         <div className="relative">
             <button
                 onClick={toggleDropdown}
-                className="group flex items-center gap-3 rounded-2xl p-1.5 transition-colors hover:bg-gray-50 dark:hover:bg-gray-800"
+                className="group flex items-center gap-3 rounded-2xl p-1.5 transition-colors hover:bg-surface-secondary"
             >
-                <div className="h-10 w-10 overflow-hidden rounded-xl border-2 border-transparent transition-all group-hover:border-blue-500/20">
+                <div className="h-10 w-10 overflow-hidden rounded-xl border-2 border-transparent transition-all group-hover:border-primary/20">
                     <Image
                         width={40}
                         height={40}
@@ -65,16 +65,16 @@ export default function UserDropdown() {
                 </div>
 
                 <div className="hidden text-left md:block">
-                    <p className="mb-1 text-sm leading-none font-black text-gray-900 dark:text-white">
+                    <p className="mb-1 text-sm leading-none font-black text-foreground">
                         {user?.first_name || "Saurav"}
                     </p>
-                    <p className="text-[10px] font-bold tracking-widest text-gray-400 uppercase">
+                    <p className="text-[10px] font-bold tracking-widest text-foreground-muted uppercase">
                         {user?.role || "Family Owner"}
                     </p>
                 </div>
 
                 <ChevronDown
-                    className={`h-4 w-4 text-gray-400 transition-transform duration-300 ${
+                    className={`h-4 w-4 text-foreground-muted transition-transform duration-300 ${
                         isOpen ? "rotate-180" : ""
                     }`}
                 />
@@ -83,15 +83,15 @@ export default function UserDropdown() {
             <Dropdown
                 isOpen={isOpen}
                 onClose={closeDropdown}
-                className="animate-in fade-in zoom-in-95 absolute right-0 mt-4 w-[280px] rounded-3xl border border-gray-100 bg-white p-3 shadow-2xl shadow-gray-200/50 duration-200 dark:border-gray-800 dark:bg-gray-900 dark:shadow-none"
+                className="animate-in fade-in zoom-in-95 absolute right-0 mt-4 w-[280px] rounded-3xl border border-border bg-surface p-3 shadow-2xl shadow-black/10 duration-200"
             >
-                <div className="mb-2 rounded-2xl border-b border-gray-50 bg-gray-50/50 px-3 py-4 dark:border-gray-800 dark:bg-gray-800/50">
-                    <p className="text-sm font-black text-gray-900 dark:text-white">
+                <div className="mb-2 rounded-2xl border-b border-border bg-surface-secondary/50 px-3 py-4">
+                    <p className="text-sm font-black text-foreground">
                         {user
                             ? `${user.first_name} ${user.last_name}`
                             : "Saurav Karn"}
                     </p>
-                    <p className="mt-1 text-xs font-medium text-gray-500 dark:text-gray-400">
+                    <p className="mt-1 text-xs font-medium text-foreground-muted">
                         {user?.email || "saurav@example.com"}
                     </p>
                 </div>
@@ -101,7 +101,7 @@ export default function UserDropdown() {
                         onItemClick={closeDropdown}
                         tag="a"
                         href="/profile"
-                        className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-bold text-gray-600 transition-all hover:bg-blue-50 hover:text-blue-600 dark:text-gray-400 dark:hover:bg-blue-900/20 dark:hover:text-blue-400"
+                        className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-bold text-foreground-muted transition-all hover:bg-primary-soft hover:text-primary"
                     >
                         <UserCircle className="h-5 w-5" />
                         Edit Profile
@@ -111,7 +111,7 @@ export default function UserDropdown() {
                         onItemClick={closeDropdown}
                         tag="a"
                         href="/settings"
-                        className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-bold text-gray-600 transition-all hover:bg-blue-50 hover:text-blue-600 dark:text-gray-400 dark:hover:bg-blue-900/20 dark:hover:text-blue-400"
+                        className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-bold text-foreground-muted transition-all hover:bg-primary-soft hover:text-primary"
                     >
                         <Settings className="h-5 w-5" />
                         Account Settings
@@ -121,17 +121,17 @@ export default function UserDropdown() {
                         onItemClick={closeDropdown}
                         tag="a"
                         href="/support"
-                        className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-bold text-gray-600 transition-all hover:bg-blue-50 hover:text-blue-600 dark:text-gray-400 dark:hover:bg-blue-900/20 dark:hover:text-blue-400"
+                        className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-bold text-foreground-muted transition-all hover:bg-primary-soft hover:text-primary"
                     >
                         <LifeBuoy className="h-5 w-5" />
                         Support Hub
                     </DropdownItem>
                 </div>
 
-                <div className="mt-2 border-t border-gray-50 pt-2 dark:border-gray-800">
+                <div className="mt-2 border-t border-border pt-2">
                     <button
                         onClick={handleLogout}
-                        className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-bold text-red-500 transition-all hover:bg-red-50 dark:hover:bg-red-900/20"
+                        className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-bold text-danger transition-all hover:bg-danger/10"
                     >
                         <LogOut className="h-5 w-5" />
                         Sign Out

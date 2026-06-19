@@ -40,13 +40,14 @@ export default function RootLayout({
                     <QueryProvider>
                         <ThemeProvider>
                             <SidebarProvider>
-                                <SocketProvider>{children}</SocketProvider>
+                                {/* <SocketProvider>{children}</SocketProvider> */}
                                 <Toaster
                                     position="top-right"
                                     containerStyle={{
                                         zIndex: 100000,
                                     }}
                                 />
+                                {children}
                             </SidebarProvider>
                         </ThemeProvider>
                     </QueryProvider>
