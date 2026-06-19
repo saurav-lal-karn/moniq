@@ -15,8 +15,8 @@ type workspaceRepository struct {
 type WorkspaceRepository interface {
 	// Define methods for workspace-related database operations here
 	CreateWorkspace(ctx context.Context, workspace *workspaceModel.Workspace) error
-	List(ctx context.Context) error
-	UpdateWorkspace(ctx context.Context) error
+	ListMyWorkspaces(ctx context.Context, userID string) ([]*workspaceModel.Workspace, error)
+	UpdateWorkspace(ctx context.Context, workspaceID string, workspace *workspaceModel.Workspace) error
 	DeleteWorkspace(ctx context.Context, workspaceID uuid.UUID) error
 	CheckOwnerOfWorkspace(ctx context.Context, userID uuid.UUID, workspaceID uuid.UUID) (bool, error)
 }
@@ -36,11 +36,39 @@ func (r *workspaceRepository) CreateWorkspace(ctx context.Context, workspace *wo
 	return err
 }
 
-func (r *workspaceRepository) List(ctx context.Context) error {
-	return nil // Placeholder return statement
+func (r *workspaceRepository) ListMyWorkspaces(ctx context.Context, userID string) ([]*workspaceModel.Workspace, error) {
+	query := `
+		SELECT 
+			workspaces.id,
+			workspaces.name,
+			workspaces.type,
+			workspaces.description,
+			workspaces.created_by 
+		FROM workspaces
+		LEFT JOIN workspace_members ON workspace_members.workspace_id = workspaces.id
+		WHERE workspace_members.user_id = $1
+		AND workspaces.deleted_at IS NULL
+		AND workspace_members.deleted_at IS NULL
+	`
+	rows, err := r.db.Executor(ctx).Query(ctx, query, userID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var workspaces []*workspaceModel.Workspace
+	for rows.Next() {
+		var workspace workspaceModel.Workspace
+		if err := rows.Scan(&workspace.ID, &workspace.Name, &workspace.Type, &workspace.Description, &workspace.CreatedBy); err != nil {
+			return nil, err
+		}
+
+		workspaces = append(workspaces, &workspace)
+	}
+	return workspaces, nil // Placeholder return statement
 }
 
-func (r *workspaceRepository) UpdateWorkspace(ctx context.Context) error {
+func (r *workspaceRepository) UpdateWorkspace(ctx context.Context, workspaceID string, workspace *workspaceModel.Workspace) error {
 	return nil // Placeholder return statement
 }
 

@@ -22,6 +22,13 @@ func StringPtr(s string) *string {
 	return &s
 }
 
+func StringValue(s *string) string {
+    if s == nil {
+        return ""
+    }
+    return *s
+}
+
 // Helper function to convert string to int
 func GetEnvAsInt(key string, defaultValue int) int {
 	valueStr := os.Getenv(key)

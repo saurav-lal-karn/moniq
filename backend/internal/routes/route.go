@@ -14,6 +14,7 @@ import (
 	"github.com/saurav-lal-karn/moniq/backend/internal/middleware"
 	iamroute "github.com/saurav-lal-karn/moniq/backend/internal/modules/iam/route"
 	"github.com/saurav-lal-karn/moniq/backend/internal/modules/user"
+	workspaceRoute "github.com/saurav-lal-karn/moniq/backend/internal/modules/workspace/route"
 )
 
 func SetupRouter(cfg *config.Config, db *pgxpool.Pool, rdb *redis.Client) *gin.Engine {
@@ -67,6 +68,9 @@ func SetupRouter(cfg *config.Config, db *pgxpool.Pool, rdb *redis.Client) *gin.E
 
 	// Register iam routes
 	iamroute.RegisterIamRoutes(routeV1, txm, cfg)
+
+	// Register workspace routes
+	workspaceRoute.RegisterWorkspaceRoutes(routeV1, txm, cfg)
 	
 	return router
 }

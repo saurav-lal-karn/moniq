@@ -245,9 +245,115 @@
                     }
                 }
             }
+        },
+        "/workspace/create": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Create workspace",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Workspace"
+                ],
+                "summary": "Create workspace",
+                "parameters": [
+                    {
+                        "description": "CreateWorkspace Request",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.CreateWorkspaceRequestDTO"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/helper.Response"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/helper.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/workspace/list": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "List of user's workspaces",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Workspace"
+                ],
+                "summary": "List My Workspace",
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/helper.Response"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/helper.Response"
+                        }
+                    }
+                }
+            }
         }
     },
     "definitions": {
+        "dto.CreateWorkspaceRequestDTO": {
+            "type": "object",
+            "required": [
+                "name",
+                "type"
+            ],
+            "properties": {
+                "description": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "type": {
+                    "enum": [
+                        "personal",
+                        "family",
+                        "team"
+                    ],
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/model.WorkspaceType"
+                        }
+                    ]
+                }
+            }
+        },
         "dto.LoginRequestDTO": {
             "type": "object",
             "required": [
@@ -345,6 +451,19 @@
                     "type": "boolean"
                 }
             }
+        },
+        "model.WorkspaceType": {
+            "type": "string",
+            "enum": [
+                "personal",
+                "family",
+                "team"
+            ],
+            "x-enum-varnames": [
+                "PersonalWorkspace",
+                "FamilyWorkspace",
+                "TeamWorkspace"
+            ]
         }
     },
     "securityDefinitions": {

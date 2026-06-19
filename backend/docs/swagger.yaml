@@ -1,5 +1,22 @@
 basePath: /api/v1
 definitions:
+  dto.CreateWorkspaceRequestDTO:
+    properties:
+      description:
+        type: string
+      name:
+        type: string
+      type:
+        allOf:
+        - $ref: '#/definitions/model.WorkspaceType'
+        enum:
+        - personal
+        - family
+        - team
+    required:
+    - name
+    - type
+    type: object
   dto.LoginRequestDTO:
     properties:
       email:
@@ -65,6 +82,16 @@ definitions:
       success:
         type: boolean
     type: object
+  model.WorkspaceType:
+    enum:
+    - personal
+    - family
+    - team
+    type: string
+    x-enum-varnames:
+    - PersonalWorkspace
+    - FamilyWorkspace
+    - TeamWorkspace
 info:
   contact:
     email: sauravkarn541@gmail.com
@@ -223,6 +250,55 @@ paths:
       summary: Register user
       tags:
       - Auth
+  /workspace/create:
+    post:
+      consumes:
+      - application/json
+      description: Create workspace
+      parameters:
+      - description: CreateWorkspace Request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/dto.CreateWorkspaceRequestDTO'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/helper.Response'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/helper.Response'
+      security:
+      - BearerAuth: []
+      summary: Create workspace
+      tags:
+      - Workspace
+  /workspace/list:
+    get:
+      consumes:
+      - application/json
+      description: List of user's workspaces
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/helper.Response'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/helper.Response'
+      security:
+      - BearerAuth: []
+      summary: List My Workspace
+      tags:
+      - Workspace
 securityDefinitions:
   BearerAuth:
     in: header
