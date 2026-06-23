@@ -278,6 +278,33 @@ paths:
       summary: Create workspace
       tags:
       - Workspace
+  /workspace/details/{id}:
+    get:
+      consumes:
+      - application/json
+      description: Get Workspace details
+      parameters:
+      - description: Workspace Id
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/helper.Response'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/helper.Response'
+      security:
+      - BearerAuth: []
+      summary: Get workspace details
+      tags:
+      - Workspace
   /workspace/list:
     get:
       consumes:

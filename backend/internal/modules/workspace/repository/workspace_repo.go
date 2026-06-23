@@ -4,7 +4,9 @@ import (
 	"context"
 
 	"github.com/google/uuid"
+	"github.com/jackc/pgx/v5"
 	"github.com/saurav-lal-karn/moniq/backend/internal/database"
+	iamModel "github.com/saurav-lal-karn/moniq/backend/internal/modules/iam/model"
 	workspaceModel "github.com/saurav-lal-karn/moniq/backend/internal/modules/workspace/model"
 )
 
@@ -19,6 +21,7 @@ type WorkspaceRepository interface {
 	UpdateWorkspace(ctx context.Context, workspaceID string, workspace *workspaceModel.Workspace) error
 	DeleteWorkspace(ctx context.Context, workspaceID uuid.UUID) error
 	CheckOwnerOfWorkspace(ctx context.Context, userID uuid.UUID, workspaceID uuid.UUID) (bool, error)
+	GetWorkspaceDetails(ctx context.Context, workspaceID uuid.UUID) (*workspaceModel.WorkspaceDetails, error)
 }
 
 func NewWorkspaceRepository(db database.DB) WorkspaceRepository {
@@ -83,3 +86,104 @@ func (r *workspaceRepository) CheckOwnerOfWorkspace(ctx context.Context, userID 
 	return owns, err
 }
 
+func (r *workspaceRepository) GetWorkspaceDetails(ctx context.Context, workspaceID uuid.UUID) (*workspaceModel.WorkspaceDetails, error) {
+	query := `
+		SELECT 
+			ws.id,
+			ws.name,
+			ws.description,
+			ws.type,
+			ws.created_by,
+			wms.id,
+			wms.role,
+			wms.user_id,
+			wms.created_by,
+			wms.joined_at,
+			users.id,
+			users.first_name,
+			users.last_name,
+			users.email,
+			users.email_verified,
+			users.profile_picture_url,
+			users.is_active,
+			users.role
+		FROM public.workspaces ws
+		LEFT JOIN public.workspace_members AS wms ON ws.id = wms.workspace_id AND wms.deleted_at IS NULL
+		LEFT JOIN public.users ON wms.user_id = users.id
+		WHERE ws.id = $1
+	`
+
+	rows, err := r.db.Executor(ctx).Query(ctx, query, workspaceID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var workspace *workspaceModel.WorkspaceDetails
+
+	for rows.Next() {
+		var r workspaceModel.WorkspaceRow
+		err := rows.Scan(
+			&r.WorkspaceID,
+			&r.WorkspaceName,
+			&r.WorkspaceDescription,
+			&r.WorkspaceType,
+			&r.WorkspaceCreatedBy,
+			&r.WorkspaceMemberID,
+			&r.WorkspaceMemberRole,
+			&r.WorkspaceMemberUserID,
+			&r.WorkspaceMemberCreatedBy,
+			&r.WorkspaceMemberJoinedAt,
+			&r.UserID,
+			&r.UserFirstName,
+			&r.UserLastName,
+			&r.UserEmail,
+			&r.UserEmailVerified,
+			&r.UserProfilePictureUrl,
+			&r.UserIsActive,
+			&r.UserRole,
+		)
+		
+		if err != nil {
+			return nil, err
+		}
+
+		if workspace == nil {
+			workspace = &workspaceModel.WorkspaceDetails{
+				ID: r.WorkspaceID,
+				Name: r.WorkspaceName,
+				Description: r.WorkspaceDescription,
+				Type: r.WorkspaceType,
+				CreatedBy: r.WorkspaceCreatedBy,
+				Members: []workspaceModel.WorkspaceDetailsMember{},
+			}
+		}
+
+		if r.WorkspaceMemberID != uuid.Nil  && r.UserID != uuid.Nil{
+			workspace.Members = append(workspace.Members, workspaceModel.WorkspaceDetailsMember{
+				ID: r.WorkspaceMemberID,
+				Role: r.WorkspaceMemberRole,
+				UserID: r.WorkspaceMemberUserID,
+				CreatedBy: r.WorkspaceMemberCreatedBy,
+				JoinedAt: r.WorkspaceMemberJoinedAt,
+				User: iamModel.User{
+					ID: r.UserID,
+					FirstName: r.UserFirstName,
+					LastName: r.UserLastName,
+					Email: r.UserEmail,
+					EmailVerified: r.UserEmailVerified,
+					ProfilePictureURL: r.UserProfilePictureUrl,
+					IsActive: r.UserIsActive,
+					Role: iamModel.UserRole(r.UserRole),
+
+				},
+			})
+		}
+	}
+
+	if workspace == nil {
+		return nil, pgx.ErrNoRows
+	}
+	
+	return workspace, nil
+}

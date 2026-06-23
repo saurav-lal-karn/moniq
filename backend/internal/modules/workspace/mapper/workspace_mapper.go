@@ -24,3 +24,40 @@ func ToWorkspaceResponseList(workspaces []*model.Workspace) []dto.WorkspaceRespo
 	}
 	return result
 }
+
+func ToWorkspaceMemberResponse(member *model.WorkspaceDetailsMember) dto.WorkspaceMemberResponse {
+	return dto.WorkspaceMemberResponse{
+		ID: member.ID,
+		Role: member.Role,
+		UserID: member.UserID,
+		CreatedBy: member.CreatedBy,
+		JoinedAt: member.JoinedAt,
+		User: dto.WorkspaceMemberDetailsResponse{
+			ID: member.User.ID,
+			FirstName: member.User.FirstName,
+			LastName: member.User.LastName,
+			Email: member.User.Email,
+			EmailVerified: member.User.EmailVerified,
+			ProfilePictureUrl: member.User.ProfilePictureURL,
+			IsActive: member.User.IsActive,
+			Role: string(member.User.Role),
+		},
+	}
+}
+
+func ToWorkspaceDetailsReponse(workspace *model.WorkspaceDetails) dto.WorkspaceDetailsResponse {
+	memberDetails := make([]dto.WorkspaceMemberResponse, 0, len(workspace.Members))
+	members := &workspace.Members
+	for _, member := range *members {
+		memberDetails = append(memberDetails, ToWorkspaceMemberResponse(&member))
+	}
+
+	return dto.WorkspaceDetailsResponse{
+		ID: workspace.ID,
+		Name: workspace.Name,
+		Description: workspace.Description,
+		Type: workspace.Type,
+		OwnerID: workspace.CreatedBy,
+		Members: memberDetails,
+	}
+}

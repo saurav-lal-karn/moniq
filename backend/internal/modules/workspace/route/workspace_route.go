@@ -23,4 +23,5 @@ func RegisterWorkspaceRoutes(router *gin.RouterGroup,txm *database.TxManager, cf
 	// Workspace CRUD routes
 	workspaceRoutes.POST("/create", workspaceHandler.CreateWorkspace)
 	workspaceRoutes.GET("/list", workspaceHandler.ListMyWorkspaces)
+	workspaceRoutes.GET("/details/:id", workspaceHandler.GetWorkspaceDetails)
 }

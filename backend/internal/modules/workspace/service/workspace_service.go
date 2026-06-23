@@ -23,6 +23,7 @@ type WorkspaceService interface {
 	// nested TxManager.Run joins the existing transaction when one is active.
 	Create(ctx context.Context, req dto.CreateWorkspaceRequestDTO) (*model.Workspace, error)
 	ListMyWorkspaces(ctx context.Context, userID string)([]*model.Workspace, error)
+	GetWorkspaceDetails(ctx context.Context, workspaceID uuid.UUID) (*model.WorkspaceDetails, error)
 }
 
 func NewWorkspaceService(txm *database.TxManager, repo repository.WorkspaceRepository, memberRepo repository.WorkspaceMemberRepository) WorkspaceService {
@@ -69,4 +70,13 @@ func(s *workspaceService) ListMyWorkspaces(ctx context.Context, userID string)([
 	}
 
 	return workspaces, nil
+}
+
+func(s *workspaceService) GetWorkspaceDetails(ctx context.Context, workspaceID uuid.UUID) (*model.WorkspaceDetails, error) {
+	details, err := s.repo.GetWorkspaceDetails(ctx, workspaceID)
+	if err != nil {
+		return nil, err
+	}
+
+	return details, err
 }
