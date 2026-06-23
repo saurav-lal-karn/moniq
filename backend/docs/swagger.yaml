@@ -1,5 +1,15 @@
 basePath: /api/v1
 definitions:
+  dto.CreateWorkspaceMemberDTO:
+    properties:
+      role:
+        type: string
+      user_id:
+        type: string
+    required:
+    - role
+    - user_id
+    type: object
   dto.CreateWorkspaceRequestDTO:
     properties:
       description:
@@ -329,6 +339,39 @@ paths:
       summary: Update workspace
       tags:
       - Workspace
+  /workspace/{id}/member:
+    post:
+      consumes:
+      - application/json
+      description: Add member to workspace
+      parameters:
+      - description: Workspace Id
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: CreateWorkspace Request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/dto.CreateWorkspaceMemberDTO'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/helper.Response'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/helper.Response'
+      security:
+      - BearerAuth: []
+      summary: Add member in workspace
+      tags:
+      - WorkspaceMember
   /workspace/create:
     post:
       consumes:

@@ -14,7 +14,10 @@ func RegisterWorkspaceRoutes(router *gin.RouterGroup,txm *database.TxManager, cf
 	workspaceRepo := repository.NewWorkspaceRepository(txm)
 	memberRepo := repository.NewWorkspaceMemberRepository(txm)
 	workspaceService := service.NewWorkspaceService(txm, workspaceRepo, memberRepo)
+	workspaceMemberService := service.NewMemberService(txm, memberRepo, workspaceRepo)
+
 	workspaceHandler := handler.NewWorkspaceHandler(workspaceService)
+	workspaceMemberHandler := handler.NewMemberHandler(workspaceMemberService)
 
 	// Workspace Routes
 	workspaceRoutes := router.Group("workspace")
@@ -26,4 +29,7 @@ func RegisterWorkspaceRoutes(router *gin.RouterGroup,txm *database.TxManager, cf
 	workspaceRoutes.GET("/details/:id", workspaceHandler.GetWorkspaceDetails)
 	workspaceRoutes.PUT("/:id", workspaceHandler.UpdateWorkspace)
 	workspaceRoutes.DELETE("/:id", workspaceHandler.DeleteWorkspace)
+
+	workspaceMemberRoutes := workspaceRoutes.Group(":id/member")
+	workspaceMemberRoutes.POST("", workspaceMemberHandler.CreateMember)
 }

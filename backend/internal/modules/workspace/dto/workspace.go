@@ -11,17 +11,17 @@ import (
 // and its owner. OwnerID is populated server-side (from the authenticated user
 // or the registration flow), never from the request body.
 type CreateWorkspaceRequestDTO struct {
-	Name        string              `json:"name" validate:"required"`
+	Name        string              `json:"name" binding:"required"`
 	Description *string             `json:"description,omitempty"`
-	Type        model.WorkspaceType `json:"type" validate:"required,oneof=personal family team"`
+	Type        model.WorkspaceType `json:"type" binding:"required,oneof=personal family team"`
 	OwnerID     uuid.UUID           `json:"-"`
 }
 
 type UpdateWorkspaceRequestDTO struct {
-	ID 			string 				`json:"id" validate:"required"`
-	Name        string              `json:"name" validate:"required"`
+	ID 			string 				`json:"id" binding:"required"`
+	Name        string              `json:"name" binding:"required"`
 	Description *string             `json:"description,omitempty"`
-	Type        model.WorkspaceType `json:"type" validate:"required,oneof=personal family team"`
+	Type        model.WorkspaceType `json:"type" binding:"required,oneof=personal family team"`
 	OwnerID     uuid.UUID           `json:"-"`
 }
 
@@ -60,4 +60,20 @@ type WorkspaceDetailsResponse struct {
 	Type string `json:"type"`
 	OwnerID uuid.UUID `json:"owner_id"`
 	Members []WorkspaceMemberResponse `json:"members"`
+}
+
+// Members dto for workspace
+type CreateWorkspaceMemberDTO struct {
+	UserID string `json:"user_id" binding:"required"`
+	Role string `json:"role" binding:"required,oneof=owner admin member"`
+	WorkspaceID uuid.UUID `json:"-"`
+	CreatedBY uuid.UUID `json:"-"`
+}
+
+type UpdateWorkspaceMemberDTO struct {
+	ID string `json:"id" binding:"required"`
+	UserID string `json:"user_id" binding:"required"`
+	Role string `json:"role" binding:"required,oneof=owner admin member"`
+	WorkspaceID uuid.UUID `json:"-"`
+	CreatedBY uuid.UUID `json:"-"`
 }
