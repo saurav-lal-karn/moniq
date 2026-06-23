@@ -27,6 +27,7 @@ type WorkspaceService interface {
 	ListMyWorkspaces(ctx context.Context, userID string)([]*model.Workspace, error)
 	GetWorkspaceDetails(ctx context.Context, workspaceID uuid.UUID) (*model.WorkspaceDetails, error)
 	UpdateWorkspaceDetails(ctx context.Context, workspaceID uuid.UUID, req dto.UpdateWorkspaceRequestDTO) (* model.Workspace, error)
+	DeleteWorkspace(ctx context.Context, workspaceID uuid.UUID, userID uuid.UUID) error
 }
 
 func NewWorkspaceService(txm *database.TxManager, repo repository.WorkspaceRepository, memberRepo repository.WorkspaceMemberRepository) WorkspaceService {
@@ -106,4 +107,30 @@ func(s *workspaceService) UpdateWorkspaceDetails(ctx context.Context, workspaceI
 		return nil, err
 	}
 	return updatedWorkspace, nil
+}
+
+func(s *workspaceService) DeleteWorkspace(ctx context.Context, workspaceID uuid.UUID, userID uuid.UUID) error {
+	_, err := s.repo.GetWorkspaceByID(ctx, workspaceID)
+	if err != nil {
+		if err == pgx.ErrNoRows {
+			return errors.New("Workspace not found. Please check again")
+		}
+		return err
+	}
+
+	isOwner, err := s.repo.CheckOwnerOfWorkspace(ctx, userID, workspaceID)
+	if  err != nil {
+		return err
+	}
+
+	if !isOwner {
+		return errors.New("You are not permitted to perform this operation")
+	}
+
+	err = s.repo.DeleteWorkspace(ctx, workspaceID)
+	if  err != nil {
+		return err
+	}
+
+	return nil
 }

@@ -86,11 +86,11 @@ func (r *workspaceRepository) UpdateWorkspace(ctx context.Context, workspaceID u
 	if err != nil {
 		return nil, err
 	}
-	return &updatedWorkspace, nil // Placeholder return statement
+	return &updatedWorkspace, nil
 }
 
 func (r *workspaceRepository) DeleteWorkspace(ctx context.Context, workspaceID uuid.UUID) error {
-	_, err := r.db.Executor(ctx).Exec(ctx, "DELETE FROM workspaces where id = $1", workspaceID)
+	_, err := r.db.Executor(ctx).Exec(ctx, "UPDATE workspaces SET deleted_at = NOW() where id = $1", workspaceID)
 	return err
 }
 

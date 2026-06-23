@@ -25,4 +25,5 @@ func RegisterWorkspaceRoutes(router *gin.RouterGroup,txm *database.TxManager, cf
 	workspaceRoutes.GET("/list", workspaceHandler.ListMyWorkspaces)
 	workspaceRoutes.GET("/details/:id", workspaceHandler.GetWorkspaceDetails)
 	workspaceRoutes.PUT("/:id", workspaceHandler.UpdateWorkspace)
+	workspaceRoutes.DELETE("/:id", workspaceHandler.DeleteWorkspace)
 }

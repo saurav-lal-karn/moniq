@@ -180,3 +180,50 @@ func(h *workspaceHandler) UpdateWorkspace(ctx *gin.Context) {
 	updatedResponse := mapper.ToWorkspaceResponse(updatedWorkspaceDetails)
 	helper.SuccessResponse(ctx, http.StatusOK, "Workspace details updated successfully", updatedResponse)
 }
+
+
+// Delete Workspace godoc
+// 
+// @Summary Delete workspace
+// @Description Delete Workspace
+// @Tags Workspace
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param id path string true "Workspace Id"
+// @Success 200 {object} helper.Response
+// @Failure 400 {object} helper.Response
+// @Router /workspace/{id} [delete]
+func(h *workspaceHandler) DeleteWorkspace(ctx *gin.Context) {
+	userId, exists := ctx.Get("userID")
+	if !exists {
+		helper.ErrorResponse(ctx, http.StatusUnauthorized, "User ID not found in context")
+		return
+	}
+
+	userID, err := uuid.Parse(userId.(string))
+	if err != nil {
+		helper.ErrorResponse(ctx, http.StatusUnauthorized, "Invalid User ID, Please try again")
+		return
+	}
+
+	workspaceId := ctx.Param("id")
+	if workspaceId == "" {
+		helper.ErrorResponse(ctx, http.StatusBadRequest, "Workspace Id not found. Please try again.")
+		return
+	}
+
+	workspaceID, err := uuid.Parse(workspaceId)
+	if err != nil {
+		helper.ErrorResponse(ctx, http.StatusBadRequest, "Malformed workspace ID in request. Please check again")
+		return
+	}
+
+	err = h.service.DeleteWorkspace(ctx, workspaceID, userID)
+	if  err != nil {
+		helper.ErrorResponse(ctx, http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	helper.SuccessResponse(ctx, http.StatusOK, "Workspace deleted successfully", nil)
+}
