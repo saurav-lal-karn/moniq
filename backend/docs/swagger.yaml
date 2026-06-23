@@ -72,6 +72,26 @@ definitions:
     - last_name
     - password
     type: object
+  dto.UpdateWorkspaceRequestDTO:
+    properties:
+      description:
+        type: string
+      id:
+        type: string
+      name:
+        type: string
+      type:
+        allOf:
+        - $ref: '#/definitions/model.WorkspaceType'
+        enum:
+        - personal
+        - family
+        - team
+    required:
+    - id
+    - name
+    - type
+    type: object
   helper.Response:
     properties:
       data: {}
@@ -250,6 +270,39 @@ paths:
       summary: Register user
       tags:
       - Auth
+  /workspace/{id}:
+    put:
+      consumes:
+      - application/json
+      description: Update Workspace
+      parameters:
+      - description: Workspace Id
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Updated workspace details
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/dto.UpdateWorkspaceRequestDTO'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/helper.Response'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/helper.Response'
+      security:
+      - BearerAuth: []
+      summary: Update workspace
+      tags:
+      - Workspace
   /workspace/create:
     post:
       consumes:

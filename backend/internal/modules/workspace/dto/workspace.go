@@ -17,6 +17,14 @@ type CreateWorkspaceRequestDTO struct {
 	OwnerID     uuid.UUID           `json:"-"`
 }
 
+type UpdateWorkspaceRequestDTO struct {
+	ID 			string 				`json:"id" validate:"required"`
+	Name        string              `json:"name" validate:"required"`
+	Description *string             `json:"description,omitempty"`
+	Type        model.WorkspaceType `json:"type" validate:"required,oneof=personal family team"`
+	OwnerID     uuid.UUID           `json:"-"`
+}
+
 type WorkspaceResponseDTO struct {
 	ID string `json:"id"`
 	Name string `json:"name"`

@@ -137,3 +137,46 @@ func(h *workspaceHandler) GetWorkspaceDetails(ctx *gin.Context) {
 	workspaceDetailsReponse := mapper.ToWorkspaceDetailsReponse(details)
 	helper.SuccessResponse(ctx, http.StatusOK, "Details fetched successfully", workspaceDetailsReponse)
 }
+
+
+// Update Workspace godoc
+// 
+// @Summary Update workspace
+// @Description Update Workspace
+// @Tags Workspace
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param id path string true "Workspace Id"
+// @Param request body dto.UpdateWorkspaceRequestDTO true "Updated workspace details"
+// @Success 200 {object} helper.Response
+// @Failure 400 {object} helper.Response
+// @Router /workspace/{id} [put]
+func(h *workspaceHandler) UpdateWorkspace(ctx *gin.Context) {
+	workspaceId := ctx.Param("id")
+	if workspaceId == "" {
+		helper.ErrorResponse(ctx, http.StatusBadRequest, "Workspace Id not found. Please try again.")
+		return
+	}
+
+	workspaceID, err := uuid.Parse(workspaceId)
+	if err != nil {
+		helper.ErrorResponse(ctx, http.StatusBadRequest, "Malformed workspace ID in request. Please check again")
+		return
+	}
+
+	var req dto.UpdateWorkspaceRequestDTO
+	if err := ctx.ShouldBindJSON(&req); err != nil {
+		helper.ErrorResponse(ctx, http.StatusBadRequest, helper.FormatValidationError(err))
+		return
+	}
+
+	updatedWorkspaceDetails, err := h.service.UpdateWorkspaceDetails(ctx, workspaceID, req)
+	if err != nil {
+		helper.ErrorResponse(ctx, http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	updatedResponse := mapper.ToWorkspaceResponse(updatedWorkspaceDetails)
+	helper.SuccessResponse(ctx, http.StatusOK, "Workspace details updated successfully", updatedResponse)
+}

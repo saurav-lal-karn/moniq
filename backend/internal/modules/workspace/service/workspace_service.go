@@ -2,8 +2,10 @@ package service
 
 import (
 	"context"
+	"errors"
 
 	"github.com/google/uuid"
+	"github.com/jackc/pgx/v5"
 	"github.com/saurav-lal-karn/moniq/backend/internal/database"
 	baseModel "github.com/saurav-lal-karn/moniq/backend/internal/helper/model"
 	"github.com/saurav-lal-karn/moniq/backend/internal/modules/workspace/dto"
@@ -24,6 +26,7 @@ type WorkspaceService interface {
 	Create(ctx context.Context, req dto.CreateWorkspaceRequestDTO) (*model.Workspace, error)
 	ListMyWorkspaces(ctx context.Context, userID string)([]*model.Workspace, error)
 	GetWorkspaceDetails(ctx context.Context, workspaceID uuid.UUID) (*model.WorkspaceDetails, error)
+	UpdateWorkspaceDetails(ctx context.Context, workspaceID uuid.UUID, req dto.UpdateWorkspaceRequestDTO) (* model.Workspace, error)
 }
 
 func NewWorkspaceService(txm *database.TxManager, repo repository.WorkspaceRepository, memberRepo repository.WorkspaceMemberRepository) WorkspaceService {
@@ -79,4 +82,28 @@ func(s *workspaceService) GetWorkspaceDetails(ctx context.Context, workspaceID u
 	}
 
 	return details, err
+}
+
+func(s *workspaceService) UpdateWorkspaceDetails(ctx context.Context, workspaceID uuid.UUID, req dto.UpdateWorkspaceRequestDTO) (* model.Workspace, error) {
+	_, err := s.repo.GetWorkspaceByID(ctx, workspaceID)
+	if err != nil {
+		if err == pgx.ErrNoRows {
+			return nil, errors.New("Workspace not found. Please check again")
+		}
+		return nil, err
+	}
+
+	ws := &model.Workspace{
+		BaseModel:   baseModel.BaseModel{ID: workspaceID},
+		Name:        req.Name,
+		Description: req.Description,
+		Type:        req.Type,
+		CreatedBy:   req.OwnerID,
+	}
+
+	updatedWorkspace, err := s.repo.UpdateWorkspace(ctx, workspaceID, ws)
+	if err != nil {
+		return nil, err
+	}
+	return updatedWorkspace, nil
 }

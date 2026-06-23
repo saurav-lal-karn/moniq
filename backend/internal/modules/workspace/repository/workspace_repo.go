@@ -18,10 +18,11 @@ type WorkspaceRepository interface {
 	// Define methods for workspace-related database operations here
 	CreateWorkspace(ctx context.Context, workspace *workspaceModel.Workspace) error
 	ListMyWorkspaces(ctx context.Context, userID string) ([]*workspaceModel.Workspace, error)
-	UpdateWorkspace(ctx context.Context, workspaceID string, workspace *workspaceModel.Workspace) error
+	UpdateWorkspace(ctx context.Context, workspaceID uuid.UUID, workspace *workspaceModel.Workspace) (*workspaceModel.Workspace, error)
 	DeleteWorkspace(ctx context.Context, workspaceID uuid.UUID) error
 	CheckOwnerOfWorkspace(ctx context.Context, userID uuid.UUID, workspaceID uuid.UUID) (bool, error)
 	GetWorkspaceDetails(ctx context.Context, workspaceID uuid.UUID) (*workspaceModel.WorkspaceDetails, error)
+	GetWorkspaceByID(ctx context.Context, workspaceID uuid.UUID) (*workspaceModel.Workspace, error)
 }
 
 func NewWorkspaceRepository(db database.DB) WorkspaceRepository {
@@ -71,8 +72,21 @@ func (r *workspaceRepository) ListMyWorkspaces(ctx context.Context, userID strin
 	return workspaces, nil // Placeholder return statement
 }
 
-func (r *workspaceRepository) UpdateWorkspace(ctx context.Context, workspaceID string, workspace *workspaceModel.Workspace) error {
-	return nil // Placeholder return statement
+func (r *workspaceRepository) UpdateWorkspace(ctx context.Context, workspaceID uuid.UUID, workspace *workspaceModel.Workspace) (*workspaceModel.Workspace, error) {
+	var updatedWorkspace workspaceModel.Workspace
+	query := `
+		UPDATE workspaces SET 
+			name = COALESCE($1, name),
+			description = COALESCE($2, description),
+			type = COALESCE($3, type)
+		WHERE id = $4
+		RETURNING id, name, description, type, created_by
+	`
+	err := r.db.Executor(ctx).QueryRow(ctx, query, &workspace.Name, &workspace.Description, &workspace.Type, workspaceID).Scan(&updatedWorkspace.ID, &updatedWorkspace.Name, &updatedWorkspace.Description, &updatedWorkspace.Type, &updatedWorkspace.CreatedBy)
+	if err != nil {
+		return nil, err
+	}
+	return &updatedWorkspace, nil // Placeholder return statement
 }
 
 func (r *workspaceRepository) DeleteWorkspace(ctx context.Context, workspaceID uuid.UUID) error {
@@ -186,4 +200,16 @@ func (r *workspaceRepository) GetWorkspaceDetails(ctx context.Context, workspace
 	}
 	
 	return workspace, nil
+}
+
+func (r *workspaceRepository) GetWorkspaceByID(ctx context.Context, workspaceID uuid.UUID) (*workspaceModel.Workspace, error) {
+	var workspaceDetails workspaceModel.Workspace
+	query := `
+		SELECT id, name, description, type, created_by FROM workspaces WHERE id = $1 AND deleted_at IS NULL
+	`
+	err := r.db.Executor(ctx).QueryRow(ctx, query, workspaceID).Scan(&workspaceDetails.ID, &workspaceDetails.Name, &workspaceDetails.Description, &workspaceDetails.Type, &workspaceDetails.CreatedBy)
+	if  err != nil {
+		return nil, err
+	}
+	return &workspaceDetails, nil
 }
