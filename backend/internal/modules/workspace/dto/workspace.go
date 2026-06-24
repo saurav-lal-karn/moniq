@@ -77,3 +77,10 @@ type UpdateWorkspaceMemberDTO struct {
 	WorkspaceID uuid.UUID `json:"-"`
 	CreatedBY uuid.UUID `json:"-"`
 }
+
+type InviteUserToWorkspaceDTO struct {
+	Email string `json:"email" binding:"required"`
+	Role string `json:"role" binding:"required,oneof=owner admin member"`
+	WorkspaceID uuid.UUID `json:"-"`
+	InvitedBy uuid.UUID `json:"-"`
+}

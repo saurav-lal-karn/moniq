@@ -3,6 +3,10 @@ definitions:
   dto.CreateWorkspaceMemberDTO:
     properties:
       role:
+        enum:
+        - owner
+        - admin
+        - member
         type: string
       user_id:
         type: string

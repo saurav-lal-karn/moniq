@@ -1,0 +1,1 @@
+ALTER TABLE public.invitations ADD COLUMN IF NOT EXISTS status VARCHAR(30) DEFAULT 'pending' CHECK (status in ('pending', 'accepted', 'rejected'));

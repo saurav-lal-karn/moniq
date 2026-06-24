@@ -530,7 +530,12 @@ const docTemplate = `{
             ],
             "properties": {
                 "role": {
-                    "type": "string"
+                    "type": "string",
+                    "enum": [
+                        "owner",
+                        "admin",
+                        "member"
+                    ]
                 },
                 "user_id": {
                     "type": "string"

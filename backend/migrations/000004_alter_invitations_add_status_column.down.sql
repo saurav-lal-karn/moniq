@@ -1,0 +1,1 @@
+ALTER TABLE public.invitations DROP COLUMN IF EXISTS status;

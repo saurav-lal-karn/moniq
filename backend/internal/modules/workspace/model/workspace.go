@@ -21,6 +21,13 @@ const (
 	MemberRole WorkspaceMemberRole = "member"
 )
 
+type InvitationStatus string
+const (
+	StatusPending InvitationStatus = "pending"
+	StatusAccepted InvitationStatus = "accepted"
+	StatusRejected InvitationStatus = "rejected"
+)
+
 type Workspace struct {
 	model.BaseModel
 	Name string
@@ -46,4 +53,5 @@ type Invitation struct {
 	ExpiresAt time.Time
 	AcceptedAt *time.Time
 	InvitedBy uuid.UUID
+	Status InvitationStatus
 }
