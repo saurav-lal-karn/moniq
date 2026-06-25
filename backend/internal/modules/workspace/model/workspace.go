@@ -47,6 +47,7 @@ type WorkspaceMember struct {
 type Invitation struct {
 	model.BaseModel
 	WorkspaceID uuid.UUID
+	UserID *uuid.UUID
 	Email string
 	Role WorkspaceMemberRole
 	Token string

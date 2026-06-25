@@ -23,6 +23,7 @@ type WorkspaceRepository interface {
 	CheckOwnerOfWorkspace(ctx context.Context, userID uuid.UUID, workspaceID uuid.UUID) (bool, error)
 	GetWorkspaceDetails(ctx context.Context, workspaceID uuid.UUID) (*workspaceModel.WorkspaceDetails, error)
 	GetWorkspaceByID(ctx context.Context, workspaceID uuid.UUID) (*workspaceModel.Workspace, error)
+	CheckWorkspaceExists(ctx context.Context, workspaceID uuid.UUID) (bool, error)
 }
 
 func NewWorkspaceRepository(db database.DB) WorkspaceRepository {
@@ -212,4 +213,10 @@ func (r *workspaceRepository) GetWorkspaceByID(ctx context.Context, workspaceID 
 		return nil, err
 	}
 	return &workspaceDetails, nil
+}
+
+func (r *workspaceRepository) CheckWorkspaceExists(ctx context.Context, workspaceID uuid.UUID) (bool, error) {
+	var exists bool
+	err := r.db.Executor(ctx).QueryRow(ctx, "SELECT EXISTS(SELECT 1 from workspaces WHERE id = $1 AND deleted_at IS NULL)", workspaceID).Scan(&exists)
+	return exists, err
 }
