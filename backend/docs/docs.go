@@ -253,6 +253,46 @@ const docTemplate = `{
                 }
             }
         },
+        "/invitation/accept": {
+            "post": {
+                "description": "accept inviteto workspace",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "WorkspaceInvitation"
+                ],
+                "summary": "accept invite to workspace",
+                "parameters": [
+                    {
+                        "description": "Accept invitation Request",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.AcceptDeclineInvitationDTO"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/helper.Response"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/helper.Response"
+                        }
+                    }
+                }
+            }
+        },
         "/workspace/create": {
             "post": {
                 "security": [
@@ -468,6 +508,99 @@ const docTemplate = `{
                 }
             }
         },
+        "/workspace/{id}/invite": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "list invitations to workspace",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "WorkspaceInvitation"
+                ],
+                "summary": "list invitations to workspace",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Workspace Id",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/helper.Response"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/helper.Response"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "invite a person to workspace",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "WorkspaceInvitation"
+                ],
+                "summary": "invite to workspace",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Workspace Id",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Invite User To Workspace Request",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.InviteUserToWorkspaceDTO"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/helper.Response"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/helper.Response"
+                        }
+                    }
+                }
+            }
+        },
         "/workspace/{id}/member": {
             "post": {
                 "security": [
@@ -522,6 +655,17 @@ const docTemplate = `{
         }
     },
     "definitions": {
+        "dto.AcceptDeclineInvitationDTO": {
+            "type": "object",
+            "required": [
+                "token"
+            ],
+            "properties": {
+                "token": {
+                    "type": "string"
+                }
+            }
+        },
         "dto.CreateWorkspaceMemberDTO": {
             "type": "object",
             "required": [
@@ -565,6 +709,26 @@ const docTemplate = `{
                         {
                             "$ref": "#/definitions/model.WorkspaceType"
                         }
+                    ]
+                }
+            }
+        },
+        "dto.InviteUserToWorkspaceDTO": {
+            "type": "object",
+            "required": [
+                "email",
+                "role"
+            ],
+            "properties": {
+                "email": {
+                    "type": "string"
+                },
+                "role": {
+                    "type": "string",
+                    "enum": [
+                        "owner",
+                        "admin",
+                        "member"
                     ]
                 }
             }

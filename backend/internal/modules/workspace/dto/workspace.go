@@ -84,3 +84,19 @@ type InviteUserToWorkspaceDTO struct {
 	WorkspaceID uuid.UUID `json:"-"`
 	InvitedBy uuid.UUID `json:"-"`
 }
+
+type AcceptDeclineInvitationDTO struct {
+	Token string `json:"token" binding:"required"`
+}
+
+type InvitationResponseDTO struct {
+	ID uuid.UUID `json:"id"`
+	WorkspaceID uuid.UUID `json:"workspace_id"`
+	UserID *uuid.UUID `json:"user_id"`
+	Email string `json:"email"`
+	Role string `json:"role"`
+	ExpiresAt time.Time `json:"expires_at"`
+	InvitedBy uuid.UUID `json:"invited_by"`
+	Status string `json:"status"`
+	AcceptedAt *time.Time `json:"accepted_at"`
+}

@@ -1,5 +1,12 @@
 basePath: /api/v1
 definitions:
+  dto.AcceptDeclineInvitationDTO:
+    properties:
+      token:
+        type: string
+    required:
+    - token
+    type: object
   dto.CreateWorkspaceMemberDTO:
     properties:
       role:
@@ -30,6 +37,20 @@ definitions:
     required:
     - name
     - type
+    type: object
+  dto.InviteUserToWorkspaceDTO:
+    properties:
+      email:
+        type: string
+      role:
+        enum:
+        - owner
+        - admin
+        - member
+        type: string
+    required:
+    - email
+    - role
     type: object
   dto.LoginRequestDTO:
     properties:
@@ -284,6 +305,32 @@ paths:
       summary: Register user
       tags:
       - Auth
+  /invitation/accept:
+    post:
+      consumes:
+      - application/json
+      description: accept inviteto workspace
+      parameters:
+      - description: Accept invitation Request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/dto.AcceptDeclineInvitationDTO'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/helper.Response'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/helper.Response'
+      summary: accept invite to workspace
+      tags:
+      - WorkspaceInvitation
   /workspace/{id}:
     delete:
       consumes:
@@ -343,6 +390,65 @@ paths:
       summary: Update workspace
       tags:
       - Workspace
+  /workspace/{id}/invite:
+    get:
+      consumes:
+      - application/json
+      description: list invitations to workspace
+      parameters:
+      - description: Workspace Id
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/helper.Response'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/helper.Response'
+      security:
+      - BearerAuth: []
+      summary: list invitations to workspace
+      tags:
+      - WorkspaceInvitation
+    post:
+      consumes:
+      - application/json
+      description: invite a person to workspace
+      parameters:
+      - description: Workspace Id
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Invite User To Workspace Request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/dto.InviteUserToWorkspaceDTO'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/helper.Response'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/helper.Response'
+      security:
+      - BearerAuth: []
+      summary: invite to workspace
+      tags:
+      - WorkspaceInvitation
   /workspace/{id}/member:
     post:
       consumes:

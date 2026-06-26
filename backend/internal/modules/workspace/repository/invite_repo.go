@@ -18,7 +18,8 @@ type InviteRepository interface {
 	RejectInvite(ctx context.Context, id uuid.UUID) error
 	GetInviteByID(ctx context.Context, id uuid.UUID) (*model.Invitation, error)
 	GetInviteByToken(ctx context.Context, token string) (*model.Invitation, error)
-	CheckPendingInvitationByEmailOrUserID(ctx context.Context, email string, userID uuid.UUID, workspaceID uuid.UUID) (bool, error)
+	CheckPendingInvitationByEmailOrUserID(ctx context.Context, email string, userID *uuid.UUID, workspaceID uuid.UUID) (bool, error)
+	ListInvitations(ctx context.Context, workspaceID uuid.UUID) ([]*model.Invitation, error)
 }
 
 func NewInviteRepository(db database.DB) InviteRepository {
@@ -71,17 +72,29 @@ func(i *inviteRepository) GetInviteByID(ctx context.Context, id uuid.UUID) (*mod
 	return &invitation, nil
 }
 
-func(i *inviteRepository) CheckPendingInvitationByEmailOrUserID(ctx context.Context, email string, userID uuid.UUID, workspaceID uuid.UUID) (bool, error) {
+func(i *inviteRepository) CheckPendingInvitationByEmailOrUserID(ctx context.Context, email string, userID *uuid.UUID, workspaceID uuid.UUID) (bool, error) {
 	var exists bool
-	query := `
-		SELECT EXISTS (SELECT 1
-		FROM invitations WHERE (email = $1 OR user_id = $2) AND workspace_id = $3 AND status = $4)
-	`
+	if userID != nil {
+		query := `
+			SELECT EXISTS (SELECT 1
+			FROM invitations WHERE (email = $1 OR user_id = $2) AND workspace_id = $3 AND status = $4)
+		`
 
-	err := i.db.Executor(ctx).QueryRow(ctx, query, email, userID, workspaceID, model.InvitationStatus("pending")).Scan(&exists)
-	if err != nil {
-		return false, err
+		err := i.db.Executor(ctx).QueryRow(ctx, query, email, *userID, workspaceID, model.InvitationStatus("pending")).Scan(&exists)
+		if err != nil {
+			return false, err
+		}
+	} else {
+		query := `
+			SELECT EXISTS (SELECT 1
+			FROM invitations WHERE email = $1 AND workspace_id = $2 AND status = $3)
+		`
+		err := i.db.Executor(ctx).QueryRow(ctx, query, email, workspaceID, model.InvitationStatus("pending")).Scan(&exists)
+		if err != nil {
+			return false, err
+		}
 	}
+	
 	return exists, nil
 }
 
@@ -97,4 +110,26 @@ func(i *inviteRepository) GetInviteByToken(ctx context.Context, token string) (*
 		return nil, err
 	}
 	return &invitation, nil
+}
+
+func(i *inviteRepository) ListInvitations(ctx context.Context, workspaceID uuid.UUID) ([]*model.Invitation, error) {
+	query := `
+		SELECT id, workspace_id, user_id, email, role, expires_at, invited_by, status, accepted_at
+		FROM invitations WHERE workspace_id = $1 AND deleted_at IS NULL
+	`
+	rows, err := i.db.Executor(ctx).Query(ctx, query, workspaceID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var invitations []*model.Invitation
+	for rows.Next() {
+		var invitation model.Invitation
+		if err := rows.Scan(&invitation.ID, &invitation.WorkspaceID, &invitation.UserID, &invitation.Email, &invitation.Role, &invitation.ExpiresAt, &invitation.InvitedBy, &invitation.Status, &invitation.AcceptedAt); err != nil {
+			return nil, err
+		}
+		invitations = append(invitations, &invitation)
+	}
+	return invitations, nil
 }

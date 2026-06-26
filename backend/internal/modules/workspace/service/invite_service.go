@@ -33,6 +33,7 @@ type inviteService struct {
 
 type InviteService interface {
 	InviteUserToWorkspace(ctx context.Context, req dto.InviteUserToWorkspaceDTO) error
+	ListInvitations(ctx context.Context, workspaceID uuid.UUID) ([]*model.Invitation, error)
 	AcceptInviteToWorkspace(ctx context.Context, token string) error
 	DeclineInviteToWorkspace(ctx context.Context, token string) error
 }
@@ -97,7 +98,7 @@ func (i *inviteService) InviteUserToWorkspace(ctx context.Context, req dto.Invit
 	}
 
 	// Check if the user has already been invited to the workspace
-	hasPendingInvitations, err := i.repo.CheckPendingInvitationByEmailOrUserID(ctx, req.Email, *userID, req.WorkspaceID)
+	hasPendingInvitations, err := i.repo.CheckPendingInvitationByEmailOrUserID(ctx, req.Email, userID, req.WorkspaceID)
 	if err != nil {
 		return fmt.Errorf("Failed to query has pending invitations: %w", err)
 	}
@@ -201,4 +202,25 @@ func (i *inviteService) DeclineInviteToWorkspace(ctx context.Context, token stri
 	}
 	
 	return nil
+}
+
+func(i *inviteService) ListInvitations(ctx context.Context, workspaceID uuid.UUID) ([]*model.Invitation, error) {
+	// Check workspace exists or not
+	// Check if workspace exists
+	exists, err := i.workspaceRepo.CheckWorkspaceExists(ctx, workspaceID)
+	if err != nil {
+		return nil, fmt.Errorf("Failed to check if workspace exists: %w", err)
+	}
+
+	if !exists {
+		return nil, errors.New("Workspace doesn't exist. Please check and try again")
+	}
+
+	invitations, err := i.repo.ListInvitations(ctx, workspaceID)
+	if err != nil {
+		return nil, err
+	}
+
+	// Get the list of invitations
+	return invitations, nil
 }

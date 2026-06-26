@@ -61,3 +61,26 @@ func ToWorkspaceDetailsReponse(workspace *model.WorkspaceDetails) dto.WorkspaceD
 		Members: memberDetails,
 	}
 }
+
+func ToInvitationResponse(invitationModel *model.Invitation) dto.InvitationResponseDTO {
+	return dto.InvitationResponseDTO{
+		ID: invitationModel.ID,
+		WorkspaceID: invitationModel.WorkspaceID,
+		UserID: invitationModel.UserID,
+		Email: invitationModel.Email,
+		Role: string(invitationModel.Role),
+		ExpiresAt: invitationModel.ExpiresAt,
+		InvitedBy: invitationModel.InvitedBy,
+		Status: string(invitationModel.Status),
+		AcceptedAt: invitationModel.AcceptedAt,
+	}
+}
+
+func ToInvitationResponseList(invitations []*model.Invitation) []dto.InvitationResponseDTO{
+	result := make([]dto.InvitationResponseDTO, 0, len(invitations)) 
+	
+	for _, invitation := range invitations {
+		result = append(result, ToInvitationResponse(invitation))
+	}
+	return result
+}
