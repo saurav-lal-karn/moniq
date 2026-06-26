@@ -293,6 +293,46 @@ const docTemplate = `{
                 }
             }
         },
+        "/invitation/decline": {
+            "post": {
+                "description": "decline invite to workspace",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "WorkspaceInvitation"
+                ],
+                "summary": "decline invite to workspace",
+                "parameters": [
+                    {
+                        "description": "Decline invitation Request",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.AcceptDeclineInvitationDTO"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/helper.Response"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/helper.Response"
+                        }
+                    }
+                }
+            }
+        },
         "/workspace/create": {
             "post": {
                 "security": [

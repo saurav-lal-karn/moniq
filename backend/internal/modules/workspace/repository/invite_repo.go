@@ -102,10 +102,10 @@ func(i *inviteRepository) GetInviteByToken(ctx context.Context, token string) (*
 	var invitation model.Invitation
 	query := `
 		SELECT id, workspace_id, user_id, email, role, token, expires_at, invited_by, status, accepted_at
-		FROM invitations WHERE token = $1 AND deleted_at IS NULL
+		FROM invitations WHERE token = $1 AND status = $2 AND deleted_at IS NULL
 	`
 
-	err := i.db.Executor(ctx).QueryRow(ctx, query, token).Scan(&invitation.ID, &invitation.WorkspaceID, &invitation.UserID, &invitation.Email, &invitation.Role, &invitation.Token, &invitation.ExpiresAt, &invitation.InvitedBy, &invitation.Status, &invitation.AcceptedAt)
+	err := i.db.Executor(ctx).QueryRow(ctx, query, token, model.InvitationStatus("pending")).Scan(&invitation.ID, &invitation.WorkspaceID, &invitation.UserID, &invitation.Email, &invitation.Role, &invitation.Token, &invitation.ExpiresAt, &invitation.InvitedBy, &invitation.Status, &invitation.AcceptedAt)
 	if err != nil {
 		return nil, err
 	}

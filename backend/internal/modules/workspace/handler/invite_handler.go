@@ -129,5 +129,38 @@ func(i *inviteHandler) AcceptInvitation(ctx *gin.Context){
 		helper.ErrorResponse(ctx, http.StatusBadRequest, helper.FormatValidationError(err))
 		return
 	}
+
+	err := i.service.AcceptInviteToWorkspace(ctx, req.Token)
+	if err != nil {
+		helper.ErrorResponse(ctx, http.StatusInternalServerError, err.Error())
+		return
+	}
 	helper.SuccessResponse(ctx, http.StatusOK, "Invitation accepted successfully.", nil)
+}
+
+// Decline invite godoc
+// 
+// @Summary decline invite to workspace
+// @Description decline invite to workspace
+// @Tags WorkspaceInvitation
+// @Accept json
+// @Produce json
+// @Param request body dto.AcceptDeclineInvitationDTO true "Decline invitation Request"
+// @Success 201 {object} helper.Response
+// @Failure 400 {object} helper.Response
+// @Router /invitation/decline [post]
+func(i *inviteHandler) DeclineInvitation(ctx *gin.Context){
+	var req dto.AcceptDeclineInvitationDTO
+	if err := ctx.ShouldBindJSON(&req); err != nil {
+		helper.ErrorResponse(ctx, http.StatusBadRequest, helper.FormatValidationError(err))
+		return
+	}
+
+	err := i.service.DeclineInviteToWorkspace(ctx, req.Token)
+	if err != nil {
+		helper.ErrorResponse(ctx, http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	helper.SuccessResponse(ctx, http.StatusOK, "Invitation declined successfully.", nil)
 }

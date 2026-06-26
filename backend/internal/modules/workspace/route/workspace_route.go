@@ -50,4 +50,5 @@ func RegisterWorkspaceRoutes(router *gin.RouterGroup,txm *database.TxManager, cf
 
 	invitationRoutes := router.Group("invitation")
 	invitationRoutes.POST("/accept", inviteHandler.AcceptInvitation)
+	invitationRoutes.POST("/decline", inviteHandler.DeclineInvitation)
 }

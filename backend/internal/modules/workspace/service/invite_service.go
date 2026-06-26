@@ -164,7 +164,7 @@ func (i *inviteService) AcceptInviteToWorkspace(ctx context.Context, token strin
 	}
 	
 	// Check if inviation is valid
-	if invitation.ExpiresAt.After(time.Now()) {
+	if time.Now().After(invitation.ExpiresAt) {
 		return fmt.Errorf("Invitation has expired. Please contact admin")
 	}
 
@@ -191,7 +191,7 @@ func (i *inviteService) DeclineInviteToWorkspace(ctx context.Context, token stri
 	}
 	
 	// Check if inviation is valid
-	if invitation.ExpiresAt.After(time.Now()) {
+	if time.Now().After(invitation.ExpiresAt) {
 		return fmt.Errorf("Invitation has expired. Please contact admin")
 	}
 

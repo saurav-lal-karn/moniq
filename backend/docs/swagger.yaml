@@ -331,6 +331,32 @@ paths:
       summary: accept invite to workspace
       tags:
       - WorkspaceInvitation
+  /invitation/decline:
+    post:
+      consumes:
+      - application/json
+      description: decline invite to workspace
+      parameters:
+      - description: Decline invitation Request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/dto.AcceptDeclineInvitationDTO'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/helper.Response'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/helper.Response'
+      summary: decline invite to workspace
+      tags:
+      - WorkspaceInvitation
   /workspace/{id}:
     delete:
       consumes:
