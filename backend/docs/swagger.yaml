@@ -416,98 +416,6 @@ paths:
       summary: Update workspace
       tags:
       - Workspace
-  /workspace/{id}/invite:
-    get:
-      consumes:
-      - application/json
-      description: list invitations to workspace
-      parameters:
-      - description: Workspace Id
-        in: path
-        name: id
-        required: true
-        type: string
-      produces:
-      - application/json
-      responses:
-        "201":
-          description: Created
-          schema:
-            $ref: '#/definitions/helper.Response'
-        "400":
-          description: Bad Request
-          schema:
-            $ref: '#/definitions/helper.Response'
-      security:
-      - BearerAuth: []
-      summary: list invitations to workspace
-      tags:
-      - WorkspaceInvitation
-    post:
-      consumes:
-      - application/json
-      description: invite a person to workspace
-      parameters:
-      - description: Workspace Id
-        in: path
-        name: id
-        required: true
-        type: string
-      - description: Invite User To Workspace Request
-        in: body
-        name: request
-        required: true
-        schema:
-          $ref: '#/definitions/dto.InviteUserToWorkspaceDTO'
-      produces:
-      - application/json
-      responses:
-        "201":
-          description: Created
-          schema:
-            $ref: '#/definitions/helper.Response'
-        "400":
-          description: Bad Request
-          schema:
-            $ref: '#/definitions/helper.Response'
-      security:
-      - BearerAuth: []
-      summary: invite to workspace
-      tags:
-      - WorkspaceInvitation
-  /workspace/{id}/member:
-    post:
-      consumes:
-      - application/json
-      description: Add member to workspace
-      parameters:
-      - description: Workspace Id
-        in: path
-        name: id
-        required: true
-        type: string
-      - description: CreateWorkspace Request
-        in: body
-        name: request
-        required: true
-        schema:
-          $ref: '#/definitions/dto.CreateWorkspaceMemberDTO'
-      produces:
-      - application/json
-      responses:
-        "201":
-          description: Created
-          schema:
-            $ref: '#/definitions/helper.Response'
-        "400":
-          description: Bad Request
-          schema:
-            $ref: '#/definitions/helper.Response'
-      security:
-      - BearerAuth: []
-      summary: Add member in workspace
-      tags:
-      - WorkspaceMember
   /workspace/create:
     post:
       consumes:
@@ -563,6 +471,65 @@ paths:
       summary: Get workspace details
       tags:
       - Workspace
+  /workspace/invite:
+    get:
+      consumes:
+      - application/json
+      description: list invitations to workspace
+      parameters:
+      - description: Workspace ID
+        in: header
+        name: x-workspace-id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/helper.Response'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/helper.Response'
+      security:
+      - BearerAuth: []
+      summary: list invitations to workspace
+      tags:
+      - WorkspaceInvitation
+    post:
+      consumes:
+      - application/json
+      description: invite a person to workspace
+      parameters:
+      - description: Workspace ID
+        in: header
+        name: x-workspace-id
+        required: true
+        type: string
+      - description: Invite User To Workspace Request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/dto.InviteUserToWorkspaceDTO'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/helper.Response'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/helper.Response'
+      security:
+      - BearerAuth: []
+      summary: invite to workspace
+      tags:
+      - WorkspaceInvitation
   /workspace/list:
     get:
       consumes:
@@ -584,6 +551,65 @@ paths:
       summary: List My Workspace
       tags:
       - Workspace
+  /workspace/member:
+    get:
+      consumes:
+      - application/json
+      description: List members of workspace
+      parameters:
+      - description: Workspace ID
+        in: header
+        name: x-workspace-id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/helper.Response'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/helper.Response'
+      security:
+      - BearerAuth: []
+      summary: List members in workspace
+      tags:
+      - WorkspaceMember
+    post:
+      consumes:
+      - application/json
+      description: Add member to workspace
+      parameters:
+      - description: Workspace ID
+        in: header
+        name: x-workspace-id
+        required: true
+        type: string
+      - description: CreateWorkspace Request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/dto.CreateWorkspaceMemberDTO'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/helper.Response'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/helper.Response'
+      security:
+      - BearerAuth: []
+      summary: Add member in workspace
+      tags:
+      - WorkspaceMember
 securityDefinitions:
   BearerAuth:
     in: header

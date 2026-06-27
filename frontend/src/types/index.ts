@@ -7,6 +7,14 @@ import {
 
 export * from "./tracking";
 
+export interface Workspace {
+    id: string;
+    name: string;
+    description: string;
+    type: string;
+    owner_id: string;
+}
+
 export interface Family {
     id: string;
     name: string;
@@ -639,4 +647,36 @@ export interface CreateTaxDeductionPayload {
     max_limit: number;
     category: string;
     year: string;
+}
+
+export interface WorkspaceMemberDetailsResponse {
+    id: string;
+    first_name: string;
+    last_name: string;
+    email: string;
+    email_verified: boolean;
+    profile_picture_url: string;
+    is_active: boolean;
+    role: string;
+}
+
+export interface WorkspaceMemberResponse {
+    id: string;
+    role: string;
+    user_id: string;
+    created_by: string;
+    joined_at: string;
+    user: WorkspaceMemberDetailsResponse;
+}
+
+export interface InvitationResponseDTO {
+    id: string;
+    workspace_id: string;
+    user_id: string;
+    email: string;
+    role: string;
+    expires_at: string;
+    invited_by: string;
+    status: string;
+    accepted_at?: string;
 }

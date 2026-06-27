@@ -5,6 +5,7 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/saurav-lal-karn/moniq/backend/internal/database"
+	iamModel "github.com/saurav-lal-karn/moniq/backend/internal/modules/iam/model"
 	workspaceModel "github.com/saurav-lal-karn/moniq/backend/internal/modules/workspace/model"
 )
 
@@ -15,7 +16,7 @@ type workspaceMemberRepository struct {
 type WorkspaceMemberRepository interface {
 	AddMemberToWorkspace(ctx context.Context, member *workspaceModel.WorkspaceMember) error
 	RemoveMemberFromWorkspace(ctx context.Context, memberID uuid.UUID, workspaceID uuid.UUID) error
-	ListMemberInWorkspace(ctx context.Context, workspaceID uuid.UUID) ([]*workspaceModel.WorkspaceMember, error)
+	ListMembersInWorkspace(ctx context.Context, workspaceID uuid.UUID) ([]*workspaceModel.WorkspaceDetailsMember, error)
 	UpdateMemberInWorkspace(ctx context.Context, memberID uuid.UUID, member *workspaceModel.WorkspaceMember) error
 	CheckUserExistsInWorkspace(ctx context.Context, userID uuid.UUID, workspaceID uuid.UUID) (bool, error)
 }
@@ -39,19 +40,59 @@ func (w *workspaceMemberRepository) AddMemberToWorkspace(ctx context.Context, me
 }
 
 // ListMemberInWorkspace implements WorkspaceMemberRepository.
-func (w *workspaceMemberRepository) ListMemberInWorkspace(ctx context.Context, workspaceID uuid.UUID) ([]*workspaceModel.WorkspaceMember, error) {
-	rows, err := w.db.Executor(ctx).Query(ctx, "SELECT id, user_id, workspace_id, role, created_by from workspace_members WHERE workspace_id = $1", workspaceID)
+func (w *workspaceMemberRepository) ListMembersInWorkspace(ctx context.Context, workspaceID uuid.UUID) ([]*workspaceModel.WorkspaceDetailsMember, error) {
+	query := `
+		SELECT 
+			wms.id, 
+			wms.role,
+			wms.user_id,
+			wms.created_by,
+			wms.joined_at,
+			u.id,
+			u.first_name,
+			u.last_name,
+			u.email,
+			u.email_verified,
+			u.profile_picture_url,
+			u.is_active,
+			u.role as user_role
+		FROM workspace_members wms
+		LEFT JOIN users u ON wms.user_id = u.id
+		WHERE workspace_id = $1
+	`
+	rows, err := w.db.Executor(ctx).Query(ctx, query, workspaceID)
 	if err != nil {
 		return nil, err
 	}
+	defer rows.Close()
 
-	var members []*workspaceModel.WorkspaceMember
+	var members []*workspaceModel.WorkspaceDetailsMember
 	for rows.Next() {
-		var member workspaceModel.WorkspaceMember
-		if err := rows.Scan(&member.ID, &member.UserID, &member.WorkspaceID, &member.Role, &member.CreatedBy); err != nil {
+		var r workspaceModel.WorkspaceMemberRow
+		if err := rows.Scan(
+			&r.WorkspaceMemberID, &r.WorkspaceMemberRole, &r.WorkspaceMemberUserID, &r.WorkspaceMemberCreatedBy, &r.WorkspaceMemberJoinedAt, &r.UserID, &r.UserFirstName, &r.UserLastName, &r.UserEmail, &r.UserEmailVerified, &r.UserProfilePictureUrl, &r.UserIsActive, &r.UserRole,
+		); err != nil {
 			return nil, err
 		}
-		members = append(members, &member)
+		if r.WorkspaceMemberID != uuid.Nil && r.UserID != uuid.Nil {
+			members = append(members, &workspaceModel.WorkspaceDetailsMember{
+				ID: r.WorkspaceMemberID,
+				Role: r.WorkspaceMemberRole,
+				UserID: r.WorkspaceMemberUserID,
+				CreatedBy: r.WorkspaceMemberCreatedBy,
+				JoinedAt: r.WorkspaceMemberJoinedAt,
+				User: iamModel.User{
+					ID: r.UserID,
+					FirstName: r.UserFirstName,
+					LastName: r.UserLastName,
+					Email: r.UserEmail,
+					EmailVerified: r.UserEmailVerified,
+					ProfilePictureURL: r.UserProfilePictureUrl,
+					IsActive: r.UserIsActive,
+					Role: iamModel.UserRole(r.UserRole),
+				},
+			})
+		}
 	}
 	return members, nil
 }

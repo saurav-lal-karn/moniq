@@ -19,6 +19,17 @@ export async function apiFetch<T>(
         ...options.headers,
     };
 
+    // Inject active workspace ID if available
+    if (typeof window !== "undefined") {
+        const workspaceId = sessionStorage.getItem("active_workspace_id");
+        if (workspaceId) {
+            options.headers = {
+                ...options.headers,
+                "X-Workspace-ID": workspaceId,
+            };
+        }
+    }
+
     // Ensure credentials for cookies
     options.credentials = "include";
 

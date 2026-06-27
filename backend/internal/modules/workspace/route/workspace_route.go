@@ -41,10 +41,13 @@ func RegisterWorkspaceRoutes(router *gin.RouterGroup,txm *database.TxManager, cf
 	workspaceRoutes.PUT("/:id", workspaceHandler.UpdateWorkspace)
 	workspaceRoutes.DELETE("/:id", workspaceHandler.DeleteWorkspace)
 
-	workspaceMemberRoutes := workspaceRoutes.Group(":id/member")
+	workspaceMemberRoutes := workspaceRoutes.Group("member")
+	workspaceMemberRoutes.Use(middleware.WorkspaceAccess(memberRepo))
 	workspaceMemberRoutes.POST("", workspaceMemberHandler.CreateMember)
+	workspaceMemberRoutes.GET("", workspaceMemberHandler.ListMembers)
 
-	workspaceInviteRoutes := workspaceRoutes.Group(":id/invite")
+	workspaceInviteRoutes := workspaceRoutes.Group("invite")
+	workspaceInviteRoutes.Use(middleware.WorkspaceAccess(memberRepo))
 	workspaceInviteRoutes.POST("", inviteHandler.InviteUserToWorkspace)
 	workspaceInviteRoutes.GET("", inviteHandler.GetInvitationList)
 

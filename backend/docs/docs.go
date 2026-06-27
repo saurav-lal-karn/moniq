@@ -421,6 +421,99 @@ const docTemplate = `{
                 }
             }
         },
+        "/workspace/invite": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "list invitations to workspace",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "WorkspaceInvitation"
+                ],
+                "summary": "list invitations to workspace",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Workspace ID",
+                        "name": "x-workspace-id",
+                        "in": "header",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/helper.Response"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/helper.Response"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "invite a person to workspace",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "WorkspaceInvitation"
+                ],
+                "summary": "invite to workspace",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Workspace ID",
+                        "name": "x-workspace-id",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "description": "Invite User To Workspace Request",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.InviteUserToWorkspaceDTO"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/helper.Response"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/helper.Response"
+                        }
+                    }
+                }
+            }
+        },
         "/workspace/list": {
             "get": {
                 "security": [
@@ -439,6 +532,99 @@ const docTemplate = `{
                     "Workspace"
                 ],
                 "summary": "List My Workspace",
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/helper.Response"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/helper.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/workspace/member": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "List members of workspace",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "WorkspaceMember"
+                ],
+                "summary": "List members in workspace",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Workspace ID",
+                        "name": "x-workspace-id",
+                        "in": "header",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/helper.Response"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/helper.Response"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Add member to workspace",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "WorkspaceMember"
+                ],
+                "summary": "Add member in workspace",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Workspace ID",
+                        "name": "x-workspace-id",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "description": "CreateWorkspace Request",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.CreateWorkspaceMemberDTO"
+                        }
+                    }
+                ],
                 "responses": {
                     "201": {
                         "description": "Created",
@@ -535,151 +721,6 @@ const docTemplate = `{
                 "responses": {
                     "200": {
                         "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/helper.Response"
-                        }
-                    },
-                    "400": {
-                        "description": "Bad Request",
-                        "schema": {
-                            "$ref": "#/definitions/helper.Response"
-                        }
-                    }
-                }
-            }
-        },
-        "/workspace/{id}/invite": {
-            "get": {
-                "security": [
-                    {
-                        "BearerAuth": []
-                    }
-                ],
-                "description": "list invitations to workspace",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "WorkspaceInvitation"
-                ],
-                "summary": "list invitations to workspace",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "Workspace Id",
-                        "name": "id",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "201": {
-                        "description": "Created",
-                        "schema": {
-                            "$ref": "#/definitions/helper.Response"
-                        }
-                    },
-                    "400": {
-                        "description": "Bad Request",
-                        "schema": {
-                            "$ref": "#/definitions/helper.Response"
-                        }
-                    }
-                }
-            },
-            "post": {
-                "security": [
-                    {
-                        "BearerAuth": []
-                    }
-                ],
-                "description": "invite a person to workspace",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "WorkspaceInvitation"
-                ],
-                "summary": "invite to workspace",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "Workspace Id",
-                        "name": "id",
-                        "in": "path",
-                        "required": true
-                    },
-                    {
-                        "description": "Invite User To Workspace Request",
-                        "name": "request",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/dto.InviteUserToWorkspaceDTO"
-                        }
-                    }
-                ],
-                "responses": {
-                    "201": {
-                        "description": "Created",
-                        "schema": {
-                            "$ref": "#/definitions/helper.Response"
-                        }
-                    },
-                    "400": {
-                        "description": "Bad Request",
-                        "schema": {
-                            "$ref": "#/definitions/helper.Response"
-                        }
-                    }
-                }
-            }
-        },
-        "/workspace/{id}/member": {
-            "post": {
-                "security": [
-                    {
-                        "BearerAuth": []
-                    }
-                ],
-                "description": "Add member to workspace",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "WorkspaceMember"
-                ],
-                "summary": "Add member in workspace",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "Workspace Id",
-                        "name": "id",
-                        "in": "path",
-                        "required": true
-                    },
-                    {
-                        "description": "CreateWorkspace Request",
-                        "name": "request",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/dto.CreateWorkspaceMemberDTO"
-                        }
-                    }
-                ],
-                "responses": {
-                    "201": {
-                        "description": "Created",
                         "schema": {
                             "$ref": "#/definitions/helper.Response"
                         }

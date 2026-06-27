@@ -22,7 +22,7 @@ type MemberService interface {
 	CreateMember(ctx context.Context, req dto.CreateWorkspaceMemberDTO) (error)
 	RemoveMember(ctx context.Context, userID uuid.UUID, workspaceID uuid.UUID) error
 	UpdateMemberRole(ctx context.Context, workspaceID uuid.UUID) error
-	ListMembers(ctx context.Context, workspaceID uuid.UUID) error
+	ListMembers(ctx context.Context, workspaceID uuid.UUID) ([]*model.WorkspaceDetailsMember, error)
 }
 
 func NewMemberService(txm *database.TxManager, repo repository.WorkspaceMemberRepository, workspaceRepo repository.WorkspaceRepository) MemberService {
@@ -58,8 +58,13 @@ func (m *memberService) CreateMember(ctx context.Context, req dto.CreateWorkspac
 }
 
 // ListMembers implements MemberService.
-func (m *memberService) ListMembers(ctx context.Context, workspaceID uuid.UUID) error {
-	panic("unimplemented")
+func (m *memberService) ListMembers(ctx context.Context, workspaceID uuid.UUID) ([]*model.WorkspaceDetailsMember, error) {
+	members, err := m.repo.ListMembersInWorkspace(ctx, workspaceID)
+	if err != nil {
+		return nil, err
+	}
+
+	return members, nil
 }
 
 // RemoveMember implements MemberService.

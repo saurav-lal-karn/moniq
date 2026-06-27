@@ -9,6 +9,7 @@ import { SocketProvider } from "@/context/SocketContext";
 
 import { Toaster } from "react-hot-toast";
 import QueryProvider from "@/components/providers/QueryProvider";
+import { WorkspaceProvider } from "@/context/WorkspaceContext";
 
 const inter = Inter({
     subsets: ["latin"],
@@ -37,20 +38,22 @@ export default function RootLayout({
         <html lang="en">
             <body className={`${inter.className} ${interTight.variable} dark:bg-background`}>
                 <AuthProvider>
-                    <QueryProvider>
-                        <ThemeProvider>
-                            <SidebarProvider>
-                                {/* <SocketProvider>{children}</SocketProvider> */}
-                                <Toaster
-                                    position="top-right"
-                                    containerStyle={{
-                                        zIndex: 100000,
-                                    }}
-                                />
-                                {children}
-                            </SidebarProvider>
-                        </ThemeProvider>
-                    </QueryProvider>
+                    <WorkspaceProvider>
+                        <QueryProvider>
+                            <ThemeProvider>
+                                <SidebarProvider>
+                                    {/* <SocketProvider>{children}</SocketProvider> */}
+                                    <Toaster
+                                        position="top-right"
+                                        containerStyle={{
+                                            zIndex: 100000,
+                                        }}
+                                    />
+                                    {children}
+                                </SidebarProvider>
+                            </ThemeProvider>
+                        </QueryProvider>
+                    </WorkspaceProvider>
                 </AuthProvider>
             </body>
         </html>

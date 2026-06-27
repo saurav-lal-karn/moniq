@@ -84,3 +84,11 @@ func ToInvitationResponseList(invitations []*model.Invitation) []dto.InvitationR
 	}
 	return result
 }
+
+func ToWorkspaceMemberListReponse(members []*model.WorkspaceDetailsMember) []dto.WorkspaceMemberResponse{
+	result := make([]dto.WorkspaceMemberResponse, 0, len(members))
+	for _, member := range members {
+		result = append(result, ToWorkspaceMemberResponse(member))
+	}
+	return result
+}

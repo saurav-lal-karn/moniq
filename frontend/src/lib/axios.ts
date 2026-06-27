@@ -13,6 +13,15 @@ apiClient.interceptors.request.use(
     (config) => {
         // Ensure cookies are sent
         config.withCredentials = true;
+
+        // Inject active workspace ID if available
+        if (typeof window !== "undefined") {
+            const workspaceId = sessionStorage.getItem("active_workspace_id");
+            if (workspaceId) {
+                config.headers["X-Workspace-ID"] = workspaceId;
+            }
+        }
+
         return config;
     },
     (error) => {

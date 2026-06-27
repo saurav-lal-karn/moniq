@@ -30,6 +30,23 @@ type WorkspaceRow struct {
 	UserRole string
 }
 
+type WorkspaceMemberRow struct {
+	WorkspaceMemberID uuid.UUID
+	WorkspaceMemberRole string
+	WorkspaceMemberUserID uuid.UUID
+	WorkspaceMemberCreatedBy uuid.UUID
+	WorkspaceMemberJoinedAt *time.Time
+
+	UserID uuid.UUID
+	UserFirstName string
+	UserLastName *string
+	UserEmail string
+	UserEmailVerified bool
+	UserProfilePictureUrl *string
+	UserIsActive bool
+	UserRole string
+}
+
 type WorkspaceDetailsMember struct {
 	ID uuid.UUID
 	Role string

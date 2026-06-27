@@ -26,7 +26,7 @@ func SetupRouter(cfg *config.Config, db *pgxpool.Pool, rdb *redis.Client) *gin.E
 	corsConfig := cors.DefaultConfig()
 	corsConfig.AllowOrigins = []string{cfg.ClientUrl}
 	corsConfig.AllowCredentials = true
-	corsConfig.AllowHeaders = []string{"Authorization", "Content-Type"}
+	corsConfig.AllowHeaders = []string{"Authorization", "Content-Type", "X-Workspace-Id"}
 
 	router.Use(middleware.Logger()) // Custom structured logging middleware
 	router.Use(gin.Recovery())      // Crash recovery

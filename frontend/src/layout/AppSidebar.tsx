@@ -14,6 +14,7 @@ import {
     PieChartIcon,
     TableIcon,
 } from "../icons/index";
+import { Settings } from "lucide-react";
 
 
 type NavItem = {
@@ -36,6 +37,16 @@ const navigation: NavSection[] = [
                 icon: <GridIcon />,
                 name: "Dashboard",
                 path: "/dashboard",
+            },
+        ],
+    },
+    {
+        title: "Settings",
+        items: [
+            {
+                icon: <Settings />,
+                name: "Family",
+                path: "/workspace",
             },
         ],
     },

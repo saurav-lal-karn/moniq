@@ -29,11 +29,11 @@ func NewInviteHandler(service service.InviteService) *inviteHandler {
 // @Accept json
 // @Produce json
 // @Security BearerAuth
-// @Param id path string true "Workspace Id"
+// @Param x-workspace-id header string true "Workspace ID"
 // @Param request body dto.InviteUserToWorkspaceDTO true "Invite User To Workspace Request"
 // @Success 201 {object} helper.Response
 // @Failure 400 {object} helper.Response
-// @Router /workspace/{id}/invite [post]
+// @Router /workspace/invite [post]
 func(i *inviteHandler) InviteUserToWorkspace(ctx *gin.Context) {
 	userId, exists := ctx.Get("userID")
 	if !exists {
@@ -47,9 +47,9 @@ func(i *inviteHandler) InviteUserToWorkspace(ctx *gin.Context) {
 		return
 	}
 
-	workspaceId := ctx.Param("id")
+	workspaceId := ctx.GetHeader("X-Workspace-Id")
 	if workspaceId == ""{
-		helper.ErrorResponse(ctx, http.StatusBadRequest, "Workspace Id not found. Please try again.")
+		helper.ErrorResponse(ctx, http.StatusBadRequest, "Workspace Id not found in header. Please try again.")
 		return
 	}
 
@@ -85,14 +85,14 @@ func(i *inviteHandler) InviteUserToWorkspace(ctx *gin.Context) {
 // @Accept json
 // @Produce json
 // @Security BearerAuth
-// @Param id path string true "Workspace Id"
+// @Param x-workspace-id header string true "Workspace ID"
 // @Success 201 {object} helper.Response
 // @Failure 400 {object} helper.Response
-// @Router /workspace/{id}/invite [get]
+// @Router /workspace/invite [get]
 func(i *inviteHandler) GetInvitationList(ctx *gin.Context) {
-	workspaceId := ctx.Param("id")
+	workspaceId := ctx.GetHeader("X-Workspace-Id")
 	if workspaceId == ""{
-		helper.ErrorResponse(ctx, http.StatusBadRequest, "Workspace Id not found. Please try again.")
+		helper.ErrorResponse(ctx, http.StatusBadRequest, "Workspace Id not found in header. Please try again.")
 		return
 	}
 
