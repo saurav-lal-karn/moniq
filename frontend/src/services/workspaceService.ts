@@ -24,6 +24,12 @@ export const workspaceService = {
             return []; // Stub behavior or fallback
         }
     },
+    InviteUser: async (email: string, role: string): Promise<void> => {
+        await apiFetch<void>(`/workspace/invite`, {
+            method: "POST",
+            body: JSON.stringify({ email, role }),
+        });
+    },
     ResendInvitation: async (invitationId: string): Promise<void> => {
         await apiFetch<void>(`/workspace/invite/resend/${invitationId}`, {
             method: "POST",
