@@ -333,6 +333,105 @@ const docTemplate = `{
                 }
             }
         },
+        "/invitation/revoke": {
+            "post": {
+                "description": "revoke invitation to workspace",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "WorkspaceInvitation"
+                ],
+                "summary": "revoke invitation to workspace",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Workspace ID",
+                        "name": "x-workspace-id",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "description": "Revoke invitation Request",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.RevokeInvitationDTO"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/helper.Response"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/helper.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/invite/resend": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "resend invitation to workspace",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "WorkspaceInvitation"
+                ],
+                "summary": "resend invitation to workspace",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Workspace ID",
+                        "name": "x-workspace-id",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "description": "Resend Invite User To Workspace Request",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.ResendInvitationDTO"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/helper.Response"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/helper.Response"
+                        }
+                    }
+                }
+            }
+        },
         "/workspace/create": {
             "post": {
                 "security": [
@@ -894,6 +993,28 @@ const docTemplate = `{
                 "password": {
                     "type": "string",
                     "minLength": 8
+                }
+            }
+        },
+        "dto.ResendInvitationDTO": {
+            "type": "object",
+            "required": [
+                "id"
+            ],
+            "properties": {
+                "id": {
+                    "type": "string"
+                }
+            }
+        },
+        "dto.RevokeInvitationDTO": {
+            "type": "object",
+            "required": [
+                "id"
+            ],
+            "properties": {
+                "id": {
+                    "type": "string"
                 }
             }
         },

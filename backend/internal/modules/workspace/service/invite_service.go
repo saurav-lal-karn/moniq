@@ -36,6 +36,8 @@ type InviteService interface {
 	ListInvitations(ctx context.Context, workspaceID uuid.UUID) ([]*model.Invitation, error)
 	AcceptInviteToWorkspace(ctx context.Context, token string) error
 	DeclineInviteToWorkspace(ctx context.Context, token string) error
+	RevokeInvite(ctx context.Context, invitationID uuid.UUID, userID uuid.UUID, workspaceID uuid.UUID) error
+	ResendInvitation(ctx context.Context, req dto.ResendInvitationDTO) error
 }
 
 func NewInviteService(repo repository.InviteRepository, workspaceRepo repository.WorkspaceRepository, workspaceMemberRepo repository.WorkspaceMemberRepository, iamRepo iamRepo.IAMRepository, mailer mailer.Mailer, appBaseUrl string) InviteService {
@@ -204,6 +206,45 @@ func (i *inviteService) DeclineInviteToWorkspace(ctx context.Context, token stri
 	return nil
 }
 
+func(i *inviteService) RevokeInvite(ctx context.Context, invitationID uuid.UUID, userID uuid.UUID, workspaceID uuid.UUID) error {
+	// Check if workspace exists
+	exists, err := i.workspaceRepo.CheckWorkspaceExists(ctx, workspaceID)
+	if err != nil {
+		return fmt.Errorf("Failed to check if workspace exists: %w", err)
+	}
+
+	if !exists {
+		return errors.New("Workspace doesn't exist. Please check and try again")
+	}
+
+	// Check if user is allowed to send invitations
+	owns, err := i.workspaceRepo.CheckOwnerOfWorkspace(ctx, userID, workspaceID)
+	if err != nil {
+		return fmt.Errorf("Failed to check the owner of workspace: %w", err)
+	}
+
+	if !owns {
+		return errors.New("You don't have permision to send invitations.")
+	}
+
+	invitation, err := i.repo.GetInviteByID(ctx, invitationID)
+	if err != nil {
+		return fmt.Errorf("Failed to check if invitation exists: %w", err)
+	}
+
+	if invitation.ID == uuid.Nil {
+		return fmt.Errorf("Invitation not found. Please try again")
+	}
+
+	// Reject the invitation
+	err = i.repo.RevokeInvite(ctx, invitationID)
+	if err != nil {
+		return fmt.Errorf("Failed to revoke invite: %w", err)
+	}
+	
+	return nil
+}
+
 func(i *inviteService) ListInvitations(ctx context.Context, workspaceID uuid.UUID) ([]*model.Invitation, error) {
 	// Check workspace exists or not
 	// Check if workspace exists
@@ -223,4 +264,72 @@ func(i *inviteService) ListInvitations(ctx context.Context, workspaceID uuid.UUI
 
 	// Get the list of invitations
 	return invitations, nil
+}
+
+func(i *inviteService) ResendInvitation(ctx context.Context, req dto.ResendInvitationDTO) error {
+	// Check if workspace exists
+	exists, err := i.workspaceRepo.CheckWorkspaceExists(ctx,req.WorkspaceID)
+	if err != nil {
+		return fmt.Errorf("Failed to check if workspace exists: %w", err)
+	}
+
+	if !exists {
+		return errors.New("Workspace doesn't exist. Please check and try again")
+	}
+
+	// Check if user is allowed to send invitations
+	owns, err := i.workspaceRepo.CheckOwnerOfWorkspace(ctx, req.InvitedBy, req.WorkspaceID)
+	if err != nil {
+		return fmt.Errorf("Failed to check the owner of workspace: %w", err)
+	}
+
+	if !owns {
+		return errors.New("You don't have permision to send invitations.")
+	}
+
+	// Check if earlier invitation exists
+	existingInvitation, err := i.repo.GetInviteByID(ctx, req.ID)
+	if err != nil {
+		return fmt.Errorf("Failed to check if earlier invitation exists: %w", err)
+	}
+
+	if existingInvitation.ID == uuid.Nil {
+		return errors.New("Invitation not found. Please check and try again")
+	}
+
+	// Generate the token
+	token, err := helper.GenerateSecureToken(inviteUserEmailTokenBytes)
+	if err != nil {
+		return fmt.Errorf("Failed to generate the token: %w", err)
+	}
+	// Re-Create new invitation
+	invitation := &model.Invitation{
+		BaseModel: baseModel.BaseModel{ID: uuid.New()},
+		WorkspaceID: req.WorkspaceID,
+		UserID: existingInvitation.UserID,
+		Email: existingInvitation.Email,
+		Role: model.WorkspaceMemberRole(existingInvitation.Role),
+		Token: token,
+		ExpiresAt: time.Now().Add(inviteUserEmailTTL),
+		InvitedBy: req.InvitedBy,
+		Status: "pending",
+	}
+
+	err = i.repo.InviteUserToWorkspace(ctx, invitation)
+	if err != nil {
+		return fmt.Errorf("Failed to create invitation: %w", err)
+	}
+
+	// Update earlier invitation
+	err = i.repo.RevokeInvite(ctx, req.ID)
+	if err != nil {
+		return fmt.Errorf("Failed to update earlier invitation: %w", err)
+	}
+	
+	// Send email
+	if err = i.sendInvitationEmail(ctx, existingInvitation.Email, token); err != nil {
+		logger.Error("Failed to send the verification email", logger.StringField("Email", existingInvitation.Email), logger.ErrorField(err))
+	}
+	logger.Info("Invitation sent to email: %s",logger.StringField("Email", existingInvitation.Email))
+	return nil
 }

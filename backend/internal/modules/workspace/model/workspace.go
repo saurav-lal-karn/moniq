@@ -26,6 +26,8 @@ const (
 	StatusPending InvitationStatus = "pending"
 	StatusAccepted InvitationStatus = "accepted"
 	StatusRejected InvitationStatus = "rejected"
+	StatusRevoked InvitationStatus = "revoked"
+	StatusCompleted InvitationStatus = "completed"
 )
 
 type Workspace struct {

@@ -89,6 +89,16 @@ type AcceptDeclineInvitationDTO struct {
 	Token string `json:"token" binding:"required"`
 }
 
+type ResendInvitationDTO struct {
+	ID uuid.UUID `json:"id" binding:"required"`
+	WorkspaceID uuid.UUID `json:"-"`
+	InvitedBy uuid.UUID `json:"-"`
+}
+
+type RevokeInvitationDTO struct {
+	ID uuid.UUID `json:"id" binding:"required"`
+}
+
 type InvitationResponseDTO struct {
 	ID uuid.UUID `json:"id"`
 	WorkspaceID uuid.UUID `json:"workspace_id"`

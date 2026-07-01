@@ -46,10 +46,14 @@ func RegisterWorkspaceRoutes(router *gin.RouterGroup,txm *database.TxManager, cf
 	workspaceMemberRoutes.POST("", workspaceMemberHandler.CreateMember)
 	workspaceMemberRoutes.GET("", workspaceMemberHandler.ListMembers)
 
-	workspaceInviteRoutes := workspaceRoutes.Group("invite")
+	workspaceInviteRoutes := router.Group("invite")
+	workspaceInviteRoutes.Use(middleware.Auth())
 	workspaceInviteRoutes.Use(middleware.WorkspaceAccess(memberRepo))
 	workspaceInviteRoutes.POST("", inviteHandler.InviteUserToWorkspace)
 	workspaceInviteRoutes.GET("", inviteHandler.GetInvitationList)
+	workspaceInviteRoutes.POST("/revoke", inviteHandler.RevokeInvitation)
+	workspaceInviteRoutes.POST("/resend", inviteHandler.ResendInvitation)
+
 
 	invitationRoutes := router.Group("invitation")
 	invitationRoutes.POST("/accept", inviteHandler.AcceptInvitation)

@@ -20,6 +20,7 @@ type InviteRepository interface {
 	GetInviteByToken(ctx context.Context, token string) (*model.Invitation, error)
 	CheckPendingInvitationByEmailOrUserID(ctx context.Context, email string, userID *uuid.UUID, workspaceID uuid.UUID) (bool, error)
 	ListInvitations(ctx context.Context, workspaceID uuid.UUID) ([]*model.Invitation, error)
+	RevokeInvite(ctx context.Context, id uuid.UUID) error
 }
 
 func NewInviteRepository(db database.DB) InviteRepository {
@@ -55,6 +56,15 @@ func (i *inviteRepository) RejectInvite(ctx context.Context, id uuid.UUID) error
 		WHERE id = $2
 	`
 	_, err := i.db.Executor(ctx).Exec(ctx, query, model.InvitationStatus("rejected"), id)
+	return err
+}
+
+func(i *inviteRepository) RevokeInvite(ctx context.Context, id uuid.UUID) error {
+	query := `
+		UPDATE invitations SET status = $1
+		WHERE id = $2
+	`
+	_, err := i.db.Executor(ctx).Exec(ctx, query, model.InvitationStatus("revoked"), id)
 	return err
 }
 

@@ -17,7 +17,7 @@ export const workspaceService = {
     },
     listInvitations: async (): Promise<InvitationResponseDTO[]> => {
         try {
-            const data = await apiFetch<InvitationResponseDTO[]>("/workspace/invite");
+            const data = await apiFetch<InvitationResponseDTO[]>("/invite");
             return data;
         } catch (error) {
             console.error("Failed to list invitations", error);
@@ -25,28 +25,30 @@ export const workspaceService = {
         }
     },
     InviteUser: async (email: string, role: string): Promise<void> => {
-        await apiFetch<void>(`/workspace/invite`, {
+        await apiFetch<void>(`/invite`, {
             method: "POST",
             body: JSON.stringify({ email, role }),
         });
     },
     ResendInvitation: async (invitationId: string): Promise<void> => {
-        await apiFetch<void>(`/workspace/invite/resend/${invitationId}`, {
+        await apiFetch<void>('/invite/resend', {
             method: "POST",
+            body: JSON.stringify({ id: invitationId })
         });
     },
     RemoveInvitation: async (invitationId: string): Promise<void> => {
-        await apiFetch<void>(`/workspace/invite/remove/${invitationId}`, {
+        await apiFetch<void>('/invite/revoke', {
             method: "POST",
+            body: JSON.stringify({ id: invitationId })
         });
     },
     DeclineInvitation: async (): Promise<void> => {
-        await apiFetch<void>("/workspace/invite/decline", {
+        await apiFetch<void>("/invite/decline", {
             method: "POST",
         });
     },
     AcceptInvitation: async (): Promise<void> => {
-        await apiFetch<void>("/workspace/invite/accept", {
+        await apiFetch<void>("/invite/accept", {
             method: "POST",
         });
     }

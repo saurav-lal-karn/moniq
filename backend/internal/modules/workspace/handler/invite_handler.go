@@ -164,3 +164,111 @@ func(i *inviteHandler) DeclineInvitation(ctx *gin.Context){
 
 	helper.SuccessResponse(ctx, http.StatusOK, "Invitation declined successfully.", nil)
 }
+
+// Revoke invitation godoc
+// 
+// @Summary revoke invitation to workspace
+// @Description revoke invitation to workspace
+// @Tags WorkspaceInvitation
+// @Accept json
+// @Produce json
+// @Param x-workspace-id header string true "Workspace ID"
+// @Param request body dto.RevokeInvitationDTO true "Revoke invitation Request"
+// @Success 201 {object} helper.Response
+// @Failure 400 {object} helper.Response
+// @Router /invitation/revoke [post]
+func(i *inviteHandler) RevokeInvitation(ctx *gin.Context){
+	userId, exists := ctx.Get("userID")
+	if !exists {
+		helper.ErrorResponse(ctx, http.StatusUnauthorized, "User ID not found in context")
+		return
+	}
+
+	userID, err := uuid.Parse(userId.(string))
+	if err != nil {
+		helper.ErrorResponse(ctx, http.StatusUnauthorized, "Invalid user ID in the request")
+		return
+	}
+
+	workspaceId := ctx.GetHeader("X-Workspace-Id")
+	if workspaceId == ""{
+		helper.ErrorResponse(ctx, http.StatusBadRequest, "Workspace Id not found in header. Please try again.")
+		return
+	}
+
+	workspaceID, err := uuid.Parse(workspaceId)
+	if err != nil {
+		helper.ErrorResponse(ctx, http.StatusBadRequest, "Malformed workspace ID in request. Please check again")
+		return
+	}
+
+	var req dto.RevokeInvitationDTO
+	if err := ctx.ShouldBindJSON(&req); err != nil {
+		helper.ErrorResponse(ctx, http.StatusBadRequest, helper.FormatValidationError(err))
+		return
+	}
+
+	err = i.service.RevokeInvite(ctx, req.ID, userID, workspaceID)
+	if err != nil {
+		helper.ErrorResponse(ctx, http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	helper.SuccessResponse(ctx, http.StatusOK, "Invitation revoked successfully.", nil)
+}
+
+// Resend invitation godoc
+// 
+// @Summary resend invitation to workspace
+// @Description resend invitation to workspace
+// @Tags WorkspaceInvitation
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param x-workspace-id header string true "Workspace ID"
+// @Param request body dto.ResendInvitationDTO true "Resend Invite User To Workspace Request"
+// @Success 201 {object} helper.Response
+// @Failure 400 {object} helper.Response
+// @Router /invite/resend [post]
+func(i *inviteHandler) ResendInvitation(ctx *gin.Context){
+	userId, exists := ctx.Get("userID")
+	if !exists {
+		helper.ErrorResponse(ctx, http.StatusUnauthorized, "User ID not found in context")
+		return
+	}
+
+	userID, err := uuid.Parse(userId.(string))
+	if err != nil {
+		helper.ErrorResponse(ctx, http.StatusUnauthorized, "Invalid user ID in the request")
+		return
+	}
+
+	workspaceId := ctx.GetHeader("X-Workspace-Id")
+	if workspaceId == ""{
+		helper.ErrorResponse(ctx, http.StatusBadRequest, "Workspace Id not found in header. Please try again.")
+		return
+	}
+
+	workspaceID, err := uuid.Parse(workspaceId)
+	if err != nil {
+		helper.ErrorResponse(ctx, http.StatusBadRequest, "Malformed workspace ID in request. Please check again")
+		return
+	}
+	
+	var req dto.ResendInvitationDTO
+	if err := ctx.ShouldBindJSON(&req); err != nil {
+		helper.ErrorResponse(ctx, http.StatusBadRequest, helper.FormatValidationError(err))
+		return
+	}
+	// Add the workspace id and user_id to dto
+	req.WorkspaceID = workspaceID
+	req.InvitedBy = userID
+
+	err = i.service.ResendInvitation(ctx, req)
+	if err != nil {
+		helper.ErrorResponse(ctx, http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	helper.SuccessResponse(ctx, http.StatusOK, "User invited to workspace successfully", nil)
+}
