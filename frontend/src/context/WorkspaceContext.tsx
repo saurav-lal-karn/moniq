@@ -27,20 +27,23 @@ export function WorkspaceProvider({ children }: { children: React.ReactNode }) {
             setActiveWorkspaceState(null);
             return;
         }
-        
+
         try {
             setLoading(true);
             const data = await workspaceService.listMyWorkspaces();
             setWorkspaces(data || []);
-            
+
             // Check session storage for previously selected workspace
             const savedWorkspaceId = sessionStorage.getItem("active_workspace_id");
             if (data && data.length > 0) {
                 if (savedWorkspaceId) {
                     const found = data.find((w) => w.id === savedWorkspaceId);
-                    setActiveWorkspaceState(found || data[0]);
+                    const selected = found || data[0];
+                    setActiveWorkspaceState(selected);
+                    sessionStorage.setItem("active_workspace_id", selected.id);
                 } else {
                     setActiveWorkspaceState(data[0]);
+                    sessionStorage.setItem("active_workspace_id", data[0].id);
                 }
             }
         } catch (error) {

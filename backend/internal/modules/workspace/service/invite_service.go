@@ -28,26 +28,28 @@ type inviteService struct {
 	workspaceMemberRepo repository.WorkspaceMemberRepository
 	iamRepo iamRepo.IAMRepository
 	mailer     mailer.Mailer
-	appBaseUrl string
+	clientBaseUrl string
 }
 
 type InviteService interface {
 	InviteUserToWorkspace(ctx context.Context, req dto.InviteUserToWorkspaceDTO) error
 	ListInvitations(ctx context.Context, workspaceID uuid.UUID) ([]*model.Invitation, error)
-	AcceptInviteToWorkspace(ctx context.Context, token string) error
-	DeclineInviteToWorkspace(ctx context.Context, token string) error
+	AcceptInviteToWorkspace(ctx context.Context, token string, userID uuid.UUID, email string) error
+	DeclineInviteToWorkspace(ctx context.Context, token string, email string) error
 	RevokeInvite(ctx context.Context, invitationID uuid.UUID, userID uuid.UUID, workspaceID uuid.UUID) error
+	RemoveInvite(ctx context.Context, invitationID uuid.UUID, userID uuid.UUID, workspaceID uuid.UUID) error
 	ResendInvitation(ctx context.Context, req dto.ResendInvitationDTO) error
+	GetInvitationDetailsByToken(ctx context.Context, token string) (*dto.InvitationDetailsResponseDTO, error)
 }
 
-func NewInviteService(repo repository.InviteRepository, workspaceRepo repository.WorkspaceRepository, workspaceMemberRepo repository.WorkspaceMemberRepository, iamRepo iamRepo.IAMRepository, mailer mailer.Mailer, appBaseUrl string) InviteService {
+func NewInviteService(repo repository.InviteRepository, workspaceRepo repository.WorkspaceRepository, workspaceMemberRepo repository.WorkspaceMemberRepository, iamRepo iamRepo.IAMRepository, mailer mailer.Mailer, clientBaseUrl string) InviteService {
 	return &inviteService{
 		repo: repo,
 		workspaceRepo: workspaceRepo,
 		workspaceMemberRepo: workspaceMemberRepo,
 		iamRepo: iamRepo,
 		mailer: mailer,
-		appBaseUrl: appBaseUrl,
+		clientBaseUrl: clientBaseUrl,
 	}
 }
 
@@ -141,7 +143,7 @@ func (i *inviteService) InviteUserToWorkspace(ctx context.Context, req dto.Invit
 }
 
 func (i *inviteService) sendInvitationEmail(ctx context.Context, email string, token string) error {
-	invitationUrl := fmt.Sprintf("%s/api/v1/invite?token=%s", i.appBaseUrl, token)
+	invitationUrl := fmt.Sprintf("%s/invitation?token=%s", i.clientBaseUrl, token)
 
 	return i.mailer.Send(ctx, mailer.Email{
 		To:      email,
@@ -154,7 +156,7 @@ func (i *inviteService) sendInvitationEmail(ctx context.Context, email string, t
 }
 
 // AcceptInviteToWorkspace implements InviteService.
-func (i *inviteService) AcceptInviteToWorkspace(ctx context.Context, token string) error {
+func (i *inviteService) AcceptInviteToWorkspace(ctx context.Context, token string, userID uuid.UUID, email string) error {
 	// Check if invitation exists
 	invitation, err := i.repo.GetInviteByToken(ctx, token)
 	if  err != nil {
@@ -168,6 +170,10 @@ func (i *inviteService) AcceptInviteToWorkspace(ctx context.Context, token strin
 	// Check if inviation is valid
 	if time.Now().After(invitation.ExpiresAt) {
 		return fmt.Errorf("Invitation has expired. Please contact admin")
+	}
+
+	if invitation.Email != email {
+		return fmt.Errorf("You can only accept invitations sent to your email address.")
 	}
 
 	// Accept the invitation
@@ -176,12 +182,25 @@ func (i *inviteService) AcceptInviteToWorkspace(ctx context.Context, token strin
 		return fmt.Errorf("Failed to accept invite: %w", err)
 	}
 
-	// Create the user
+	// Add user to the workspace
+	member := &model.WorkspaceMember{
+		BaseModel: baseModel.BaseModel{ID: uuid.New()},
+		WorkspaceID: invitation.WorkspaceID,
+		UserID: userID,
+		Role: invitation.Role,
+		CreatedBy: invitation.InvitedBy,
+	}
+
+	err = i.workspaceMemberRepo.AddMemberToWorkspace(ctx, member)
+	if err != nil {
+		return fmt.Errorf("Failed to add user to workspace: %w", err)
+	}
+
 	return nil
 }
 
 // DeclineInviteToWorkspace implements InviteService.
-func (i *inviteService) DeclineInviteToWorkspace(ctx context.Context, token string) error {
+func (i *inviteService) DeclineInviteToWorkspace(ctx context.Context, token string, email string) error {
 	// Check if invitation exists
 	invitation, err := i.repo.GetInviteByToken(ctx, token)
 	if  err != nil {
@@ -195,6 +214,10 @@ func (i *inviteService) DeclineInviteToWorkspace(ctx context.Context, token stri
 	// Check if inviation is valid
 	if time.Now().After(invitation.ExpiresAt) {
 		return fmt.Errorf("Invitation has expired. Please contact admin")
+	}
+
+	if invitation.Email != email {
+		return fmt.Errorf("You can only decline invitations sent to your email address.")
 	}
 
 	// Reject the invitation
@@ -204,6 +227,38 @@ func (i *inviteService) DeclineInviteToWorkspace(ctx context.Context, token stri
 	}
 	
 	return nil
+}
+
+func (i *inviteService) GetInvitationDetailsByToken(ctx context.Context, token string) (*dto.InvitationDetailsResponseDTO, error) {
+	invitation, err := i.repo.GetInviteByToken(ctx, token)
+	if err != nil {
+		return nil, fmt.Errorf("Failed to get invitation by token: %w", err)
+	}
+	if invitation.ID == uuid.Nil {
+		return nil, fmt.Errorf("Invitation not found")
+	}
+
+	workspace, err := i.workspaceRepo.GetWorkspaceDetails(ctx, invitation.WorkspaceID)
+	if err != nil {
+		return nil, fmt.Errorf("Failed to get workspace details: %w", err)
+	}
+
+	inviterDetails, err := i.iamRepo.GetByID(ctx, invitation.InvitedBy.String())
+	if err != nil {
+		return nil, fmt.Errorf("Failed to get inviter details: %w", err)
+	}
+
+	inviterName := inviterDetails.FirstName
+	if inviterDetails.LastName != nil {
+		inviterName = inviterName + " " + *inviterDetails.LastName
+	}
+
+	return &dto.InvitationDetailsResponseDTO{
+		WorkspaceName: workspace.Name,
+		InviterName: inviterName,
+		Role: string(invitation.Role),
+		Email: invitation.Email,
+	}, nil
 }
 
 func(i *inviteService) RevokeInvite(ctx context.Context, invitationID uuid.UUID, userID uuid.UUID, workspaceID uuid.UUID) error {
@@ -240,6 +295,45 @@ func(i *inviteService) RevokeInvite(ctx context.Context, invitationID uuid.UUID,
 	err = i.repo.RevokeInvite(ctx, invitationID)
 	if err != nil {
 		return fmt.Errorf("Failed to revoke invite: %w", err)
+	}
+	
+	return nil
+}
+
+func(i *inviteService) RemoveInvite(ctx context.Context, invitationID uuid.UUID, userID uuid.UUID, workspaceID uuid.UUID) error {
+	// Check if workspace exists
+	exists, err := i.workspaceRepo.CheckWorkspaceExists(ctx, workspaceID)
+	if err != nil {
+		return fmt.Errorf("Failed to check if workspace exists: %w", err)
+	}
+
+	if !exists {
+		return errors.New("Workspace doesn't exist. Please check and try again")
+	}
+
+	// Check if user is allowed to send invitations
+	owns, err := i.workspaceRepo.CheckOwnerOfWorkspace(ctx, userID, workspaceID)
+	if err != nil {
+		return fmt.Errorf("Failed to check the owner of workspace: %w", err)
+	}
+
+	if !owns {
+		return errors.New("You don't have permision to send invitations.")
+	}
+
+	invitation, err := i.repo.GetInviteByID(ctx, invitationID)
+	if err != nil {
+		return fmt.Errorf("Failed to check if invitation exists: %w", err)
+	}
+
+	if invitation.ID == uuid.Nil {
+		return fmt.Errorf("Invitation not found. Please try again")
+	}
+
+	// Remove the invitation
+	err = i.repo.RemoveInvite(ctx, invitationID)
+	if err != nil {
+		return fmt.Errorf("Failed to remove invite: %w", err)
 	}
 	
 	return nil

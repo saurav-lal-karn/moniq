@@ -7,6 +7,7 @@ import { ChevronLeftIcon, EyeCloseIcon, EyeIcon } from "@/icons";
 import Link from "next/link";
 import React, { useState } from "react";
 import Image from "next/image";
+import { useSearchParams } from "next/navigation";
 import { useAuth } from "@/context/AuthContext";
 
 export default function SignUpForm() {
@@ -20,6 +21,8 @@ export default function SignUpForm() {
     const [isSubmitting, setIsSubmitting] = useState(false);
 
     const { signup } = useAuth();
+    const searchParams = useSearchParams();
+    const callbackUrl = searchParams.get("callback");
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -33,7 +36,7 @@ export default function SignUpForm() {
         setIsSubmitting(true);
 
         try {
-            await signup({ firstName, lastName, email, password });
+            await signup({ first_name: firstName, last_name: lastName, email, password }, callbackUrl || undefined);
         } catch (err: any) {
             setError(
                 err.message || "Failed to create account. Please try again."
@@ -218,7 +221,7 @@ export default function SignUpForm() {
                         <p className="text-center text-sm font-medium text-muted">
                             Already have an account? {""}
                             <Link
-                                href="/signin"
+                                href={callbackUrl ? `/signin?callback=${encodeURIComponent(callbackUrl)}` : "/signin"}
                                 className="font-black text-primary transition-colors hover:text-primary-hover"
                             >
                                 Sign In

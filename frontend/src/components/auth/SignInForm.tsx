@@ -7,6 +7,7 @@ import { ChevronLeftIcon, EyeCloseIcon, EyeIcon } from "@/icons";
 import Link from "next/link";
 import React, { useState } from "react";
 import Image from "next/image";
+import { useSearchParams } from "next/navigation";
 import { useAuth } from "@/context/AuthContext";
 
 export default function SignInForm() {
@@ -18,6 +19,8 @@ export default function SignInForm() {
     const [isSubmitting, setIsSubmitting] = useState(false);
 
     const { login } = useAuth();
+    const searchParams = useSearchParams();
+    const callbackUrl = searchParams.get("callback");
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -25,7 +28,7 @@ export default function SignInForm() {
         setIsSubmitting(true);
 
         try {
-            await login({ email, password });
+            await login({ email, password }, callbackUrl || undefined);
         } catch (err: any) {
             setError(
                 err.message ||
@@ -170,7 +173,7 @@ export default function SignInForm() {
                         <p className="text-center text-sm font-medium text-muted">
                             Don&apos;t have an account? {""}
                             <Link
-                                href="/signup"
+                                href={callbackUrl ? `/signup?callback=${encodeURIComponent(callbackUrl)}` : "/signup"}
                                 className="font-black text-primary transition-colors hover:text-primary-hover"
                             >
                                 Create Account

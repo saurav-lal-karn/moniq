@@ -24,7 +24,7 @@ func RegisterWorkspaceRoutes(router *gin.RouterGroup,txm *database.TxManager, cf
 
 	workspaceService := service.NewWorkspaceService(txm, workspaceRepo, memberRepo)
 	workspaceMemberService := service.NewMemberService(txm, memberRepo, workspaceRepo)
-	inviteService := service.NewInviteService(inviteRepo, workspaceRepo, memberRepo, iamRepo, mail, cfg.AppBaseURL)
+	inviteService := service.NewInviteService(inviteRepo, workspaceRepo, memberRepo, iamRepo, mail, cfg.ClientUrl)
 
 	workspaceHandler := handler.NewWorkspaceHandler(workspaceService)
 	workspaceMemberHandler := handler.NewMemberHandler(workspaceMemberService)
@@ -53,9 +53,14 @@ func RegisterWorkspaceRoutes(router *gin.RouterGroup,txm *database.TxManager, cf
 	workspaceInviteRoutes.GET("", inviteHandler.GetInvitationList)
 	workspaceInviteRoutes.POST("/revoke", inviteHandler.RevokeInvitation)
 	workspaceInviteRoutes.POST("/resend", inviteHandler.ResendInvitation)
+	workspaceInviteRoutes.POST("/remove", inviteHandler.RemoveInvitation)
 
 
 	invitationRoutes := router.Group("invitation")
-	invitationRoutes.POST("/accept", inviteHandler.AcceptInvitation)
-	invitationRoutes.POST("/decline", inviteHandler.DeclineInvitation)
+	invitationRoutes.GET("/details", inviteHandler.GetInvitationDetails)
+
+	authInvitationRoutes := router.Group("invitation")
+	authInvitationRoutes.Use(middleware.Auth())
+	authInvitationRoutes.POST("/accept", inviteHandler.AcceptInvitation)
+	authInvitationRoutes.POST("/decline", inviteHandler.DeclineInvitation)
 }

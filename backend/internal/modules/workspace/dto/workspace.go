@@ -99,6 +99,10 @@ type RevokeInvitationDTO struct {
 	ID uuid.UUID `json:"id" binding:"required"`
 }
 
+type RemoveInvitationDTO struct {
+	ID uuid.UUID `json:"id" binding:"required"`
+}
+
 type InvitationResponseDTO struct {
 	ID uuid.UUID `json:"id"`
 	WorkspaceID uuid.UUID `json:"workspace_id"`
@@ -109,4 +113,11 @@ type InvitationResponseDTO struct {
 	InvitedBy uuid.UUID `json:"invited_by"`
 	Status string `json:"status"`
 	AcceptedAt *time.Time `json:"accepted_at"`
+}
+
+type InvitationDetailsResponseDTO struct {
+	WorkspaceName string `json:"workspace_name"`
+	InviterName string `json:"inviter_name"`
+	Role string `json:"role"`
+	Email string `json:"email"`
 }

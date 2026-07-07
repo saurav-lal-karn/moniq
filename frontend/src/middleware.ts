@@ -10,7 +10,8 @@ export function middleware(request: NextRequest) {
         pathname === "/" ||
         pathname === "/signin" ||
         pathname === "/signup" ||
-        pathname === "/reset-password";
+        pathname === "/reset-password" ||
+        pathname === "/invitation";
 
     // If the path is not public and no token is present, redirect to signin
     if (!isPublicPath && !token) {
@@ -22,7 +23,8 @@ export function middleware(request: NextRequest) {
         isPublicPath &&
         token &&
         pathname !== "/" &&
-        pathname !== "/reset-password"
+        pathname !== "/reset-password" &&
+        pathname !== "/invitation"
     ) {
         return NextResponse.redirect(new URL("/dashboard", request.url));
     }

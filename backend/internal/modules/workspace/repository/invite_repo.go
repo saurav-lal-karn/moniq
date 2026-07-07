@@ -21,6 +21,7 @@ type InviteRepository interface {
 	CheckPendingInvitationByEmailOrUserID(ctx context.Context, email string, userID *uuid.UUID, workspaceID uuid.UUID) (bool, error)
 	ListInvitations(ctx context.Context, workspaceID uuid.UUID) ([]*model.Invitation, error)
 	RevokeInvite(ctx context.Context, id uuid.UUID) error
+	RemoveInvite(ctx context.Context, id uuid.UUID) error
 }
 
 func NewInviteRepository(db database.DB) InviteRepository {
@@ -65,6 +66,15 @@ func(i *inviteRepository) RevokeInvite(ctx context.Context, id uuid.UUID) error 
 		WHERE id = $2
 	`
 	_, err := i.db.Executor(ctx).Exec(ctx, query, model.InvitationStatus("revoked"), id)
+	return err
+}
+
+func(i *inviteRepository) RemoveInvite(ctx context.Context, id uuid.UUID) error {
+	query := `
+		UPDATE invitations SET deleted_at = NOW()
+		WHERE id = $1
+	`
+	_, err := i.db.Executor(ctx).Exec(ctx, query, id)
 	return err
 }
 
@@ -125,7 +135,17 @@ func(i *inviteRepository) GetInviteByToken(ctx context.Context, token string) (*
 func(i *inviteRepository) ListInvitations(ctx context.Context, workspaceID uuid.UUID) ([]*model.Invitation, error) {
 	query := `
 		SELECT id, workspace_id, user_id, email, role, expires_at, invited_by, status, accepted_at
-		FROM invitations WHERE workspace_id = $1 AND deleted_at IS NULL
+		FROM invitations 
+		WHERE workspace_id = $1 
+		AND deleted_at IS NULL 
+		AND status != 'accepted'
+		AND status != 'revoked'
+		AND email NOT IN (
+			SELECT u.email 
+			FROM workspace_members wm 
+			JOIN users u ON wm.user_id = u.id 
+			WHERE wm.workspace_id = $1
+		)
 	`
 	rows, err := i.db.Executor(ctx).Query(ctx, query, workspaceID)
 	if err != nil {

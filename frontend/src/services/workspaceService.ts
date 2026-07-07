@@ -37,19 +37,27 @@ export const workspaceService = {
         });
     },
     RemoveInvitation: async (invitationId: string): Promise<void> => {
+        await apiFetch<void>('/invite/remove', {
+            method: "POST",
+            body: JSON.stringify({ id: invitationId })
+        });
+    },
+    RemokeInvitation: async (invitationId: string): Promise<void> => {
         await apiFetch<void>('/invite/revoke', {
             method: "POST",
             body: JSON.stringify({ id: invitationId })
         });
     },
-    DeclineInvitation: async (): Promise<void> => {
-        await apiFetch<void>("/invite/decline", {
+    DeclineInvitation: async (token: string): Promise<void> => {
+        await apiFetch<void>("/invitation/decline", {
             method: "POST",
+            body: JSON.stringify({ token }),
         });
     },
-    AcceptInvitation: async (): Promise<void> => {
-        await apiFetch<void>("/invite/accept", {
+    AcceptInvitation: async (token: string): Promise<void> => {
+        await apiFetch<void>("/invitation/accept", {
             method: "POST",
+            body: JSON.stringify({ token }),
         });
     }
 };

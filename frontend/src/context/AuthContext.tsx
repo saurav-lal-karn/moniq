@@ -29,8 +29,8 @@ interface AuthContextType {
     loading: boolean;
     isAuthenticated: boolean;
     token: string | null;
-    login: (credentials: any) => Promise<void>;
-    signup: (userData: any) => Promise<void>;
+    login: (credentials: any, callbackUrl?: string) => Promise<void>;
+    signup: (userData: any, callbackUrl?: string) => Promise<void>;
     logout: () => Promise<void>;
     checkAuth: () => Promise<void>;
 }
@@ -61,7 +61,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         if (savedToken) setToken(savedToken);
     }, []);
 
-    const login = async (credentials: any) => {
+    const login = async (credentials: any, callbackUrl?: string) => {
         const data = await apiFetch<{ access_token: string }>("/auth/login", {
             method: "POST",
             body: JSON.stringify(credentials),
@@ -72,16 +72,20 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             sessionStorage.setItem("ws_token", data.access_token);
         }
         await checkAuth();
-        router.push("/dashboard");
+        router.push(callbackUrl || "/dashboard");
     };
 
-    const signup = async (userData: any) => {
+    const signup = async (userData: any, callbackUrl?: string) => {
         await apiFetch("/auth/register", {
             method: "POST",
             body: JSON.stringify(userData),
         });
         // Assuming register also logs in or we redirect to signin
-        router.push("/signin");
+        if (callbackUrl) {
+            router.push(`/signin?callback=${encodeURIComponent(callbackUrl)}`);
+        } else {
+            router.push("/signin");
+        }
     };
 
     const logout = async () => {

@@ -107,6 +107,13 @@ definitions:
     - last_name
     - password
     type: object
+  dto.RemoveInvitationDTO:
+    properties:
+      id:
+        type: string
+    required:
+    - id
+    type: object
   dto.ResendInvitationDTO:
     properties:
       id:
@@ -342,6 +349,8 @@ paths:
           description: Bad Request
           schema:
             $ref: '#/definitions/helper.Response'
+      security:
+      - BearerAuth: []
       summary: accept invite to workspace
       tags:
       - WorkspaceInvitation
@@ -368,26 +377,53 @@ paths:
           description: Bad Request
           schema:
             $ref: '#/definitions/helper.Response'
+      security:
+      - BearerAuth: []
       summary: decline invite to workspace
+      tags:
+      - WorkspaceInvitation
+  /invitation/details:
+    get:
+      consumes:
+      - application/json
+      description: get invitation details by token
+      parameters:
+      - description: Token
+        in: query
+        name: token
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/helper.Response'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/helper.Response'
+      summary: get invitation details
       tags:
       - WorkspaceInvitation
   /invitation/revoke:
     post:
       consumes:
       - application/json
-      description: revoke invitation to workspace
+      description: remove invitation to workspace
       parameters:
       - description: Workspace ID
         in: header
         name: x-workspace-id
         required: true
         type: string
-      - description: Revoke invitation Request
+      - description: Remove invitation Request
         in: body
         name: request
         required: true
         schema:
-          $ref: '#/definitions/dto.RevokeInvitationDTO'
+          $ref: '#/definitions/dto.RemoveInvitationDTO'
       produces:
       - application/json
       responses:
@@ -399,7 +435,7 @@ paths:
           description: Bad Request
           schema:
             $ref: '#/definitions/helper.Response'
-      summary: revoke invitation to workspace
+      summary: remove invitation to workspace
       tags:
       - WorkspaceInvitation
   /invite/resend:

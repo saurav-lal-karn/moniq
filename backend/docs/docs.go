@@ -255,6 +255,11 @@ const docTemplate = `{
         },
         "/invitation/accept": {
             "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
                 "description": "accept inviteto workspace",
                 "consumes": [
                     "application/json"
@@ -295,6 +300,11 @@ const docTemplate = `{
         },
         "/invitation/decline": {
             "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
                 "description": "decline invite to workspace",
                 "consumes": [
                     "application/json"
@@ -333,9 +343,9 @@ const docTemplate = `{
                 }
             }
         },
-        "/invitation/revoke": {
-            "post": {
-                "description": "revoke invitation to workspace",
+        "/invitation/details": {
+            "get": {
+                "description": "get invitation details by token",
                 "consumes": [
                     "application/json"
                 ],
@@ -345,7 +355,45 @@ const docTemplate = `{
                 "tags": [
                     "WorkspaceInvitation"
                 ],
-                "summary": "revoke invitation to workspace",
+                "summary": "get invitation details",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Token",
+                        "name": "token",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/helper.Response"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/helper.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/invitation/revoke": {
+            "post": {
+                "description": "remove invitation to workspace",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "WorkspaceInvitation"
+                ],
+                "summary": "remove invitation to workspace",
                 "parameters": [
                     {
                         "type": "string",
@@ -355,12 +403,12 @@ const docTemplate = `{
                         "required": true
                     },
                     {
-                        "description": "Revoke invitation Request",
+                        "description": "Remove invitation Request",
                         "name": "request",
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/dto.RevokeInvitationDTO"
+                            "$ref": "#/definitions/dto.RemoveInvitationDTO"
                         }
                     }
                 ],
@@ -993,6 +1041,17 @@ const docTemplate = `{
                 "password": {
                     "type": "string",
                     "minLength": 8
+                }
+            }
+        },
+        "dto.RemoveInvitationDTO": {
+            "type": "object",
+            "required": [
+                "id"
+            ],
+            "properties": {
+                "id": {
+                    "type": "string"
                 }
             }
         },

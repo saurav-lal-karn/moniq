@@ -174,8 +174,8 @@ function InvitationActions({
                             key={item.key}
                             onClick={(e) => { e.stopPropagation(); item.action(); }}
                             className={`flex w-full items-center gap-2.5 px-3.5 py-2 text-sm transition-colors ${item.danger
-                                    ? "text-red-600 hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-900/20"
-                                    : "text-gray-700 hover:bg-gray-50 dark:text-gray-300 dark:hover:bg-gray-800"
+                                ? "text-red-600 hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-900/20"
+                                : "text-gray-700 hover:bg-gray-50 dark:text-gray-300 dark:hover:bg-gray-800"
                                 }`}
                         >
                             {item.icon}
@@ -277,7 +277,7 @@ export default function InvitationsList() {
 
     const handleRevoke = async (invitationId: string) => {
         try {
-            await workspaceService.RemoveInvitation(invitationId);
+            await workspaceService.RemokeInvitation(invitationId);
             toast.success("Invitation revoked");
             getInvitations();
         } catch (error) {
