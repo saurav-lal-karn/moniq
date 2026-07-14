@@ -21,7 +21,6 @@ func RegisterWorkspaceRoutes(router *gin.RouterGroup,txm *database.TxManager, cf
 	// LogMailer in dev (no API key), real provider in prod.
 	mail := mailer.New(cfg.EmailAPIKey, cfg.EmailFrom)
 
-
 	workspaceService := service.NewWorkspaceService(txm, workspaceRepo, memberRepo)
 	workspaceMemberService := service.NewMemberService(txm, memberRepo, workspaceRepo)
 	inviteService := service.NewInviteService(inviteRepo, workspaceRepo, memberRepo, iamRepo, mail, cfg.ClientUrl)

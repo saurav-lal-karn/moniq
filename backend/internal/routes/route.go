@@ -14,6 +14,7 @@ import (
 	"github.com/saurav-lal-karn/moniq/backend/internal/middleware"
 	iamroute "github.com/saurav-lal-karn/moniq/backend/internal/modules/iam/route"
 	"github.com/saurav-lal-karn/moniq/backend/internal/modules/user"
+	walletRoute "github.com/saurav-lal-karn/moniq/backend/internal/modules/wallet/route"
 	workspaceRoute "github.com/saurav-lal-karn/moniq/backend/internal/modules/workspace/route"
 )
 
@@ -71,6 +72,9 @@ func SetupRouter(cfg *config.Config, db *pgxpool.Pool, rdb *redis.Client) *gin.E
 
 	// Register workspace routes
 	workspaceRoute.RegisterWorkspaceRoutes(routeV1, txm, cfg)
+
+	// Register wallet routes
+	walletRoute.RegisterWalletRoutes(routeV1, txm)
 	
 	return router
 }

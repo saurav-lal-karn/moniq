@@ -4,6 +4,8 @@ import (
 	"context"
 
 	"github.com/google/uuid"
+	baseModel "github.com/saurav-lal-karn/moniq/backend/internal/helper/model"
+	"github.com/saurav-lal-karn/moniq/backend/internal/modules/wallet/dto"
 	"github.com/saurav-lal-karn/moniq/backend/internal/modules/wallet/model"
 	"github.com/saurav-lal-karn/moniq/backend/internal/modules/wallet/repository"
 )
@@ -14,7 +16,7 @@ type walletService struct {
 }
 
 type WalletService interface {
-	Create(ctx context.Context, wallet *model.Wallet) error
+	CreateWallet(ctx context.Context, req *dto.CreateWalletRequestDTO) (error)
 	GetByID(ctx context.Context, id uuid.UUID) (*model.Wallet, error)
 	List(ctx context.Context, workspaceID uuid.UUID) ([]*model.Wallet, error)
 	Update(ctx context.Context, wallet *model.Wallet) error
@@ -28,7 +30,16 @@ func NewWalletService(walletRepo repository.WalletRepository, walletTypeRepo rep
 	}
 }
 
-func (s *walletService) Create(ctx context.Context, wallet *model.Wallet) error {
+func (s *walletService) CreateWallet(ctx context.Context, req *dto.CreateWalletRequestDTO) (error) {
+	wallet := &model.Wallet{
+		BaseModel: baseModel.BaseModel{ID: uuid.New()},
+		Name:        req.Name,
+		Description: &req.Description,
+		Currency:    req.Currency,
+		TypeID:      req.TypeID,
+		WorkspaceID: req.WorkspaceID,
+		CreatedBy:   req.CreatedBy,
+	}
 	return s.walletRepo.Create(ctx, wallet)
 }
 

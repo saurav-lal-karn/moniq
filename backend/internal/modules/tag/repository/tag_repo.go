@@ -1,80 +1,90 @@
 package repository
 
-import "github.com/jackc/pgx/v5/pgxpool"
+import (
+	"context"
+
+	"github.com/google/uuid"
+	"github.com/saurav-lal-karn/moniq/backend/internal/database"
+	"github.com/saurav-lal-karn/moniq/backend/internal/modules/tag/model"
+)
 
 type tagRepository struct {
-	db *pgxpool.Pool
+	db database.DB
 }
 
 type TagRepository interface {
-	// Define methods for tag-related database operations here
-	Create() error
-	GetByID() error
-	List() error
-	Update() error
-	Delete() error
+	Create(ctx context.Context, tag *model.Tag) error
+	GetByID(ctx context.Context, id uuid.UUID) (*model.Tag, error)
+	List(ctx context.Context, workspaceID *uuid.UUID) ([]*model.Tag, error)
+	Update(ctx context.Context, tag *model.Tag) error
+	Delete(ctx context.Context, id uuid.UUID) error
 }
 
-func NewTagRepository(db *pgxpool.Pool) TagRepository {
+func NewTagRepository(db database.DB) TagRepository {
 	return &tagRepository{
 		db: db,
 	}
 }
 
-func (r *tagRepository) Create() error {
-	// Implement the logic to create a new tag record in the database
-	// Example:
-	// _, err := r.db.Exec(ctx, "INSERT INTO tag_table (column1, column2) VALUES ($1, $2)", value1, value2)
-	// return err
-
-	return nil // Placeholder return statement
+func (r *tagRepository) Create(ctx context.Context, tag *model.Tag) error {
+	query := `
+		INSERT INTO tags(id, name, workspace_id, created_by)
+		VALUES($1, $2, $3, $4)
+	`
+	_, err := r.db.Executor(ctx).Exec(ctx, query, tag.ID, tag.Name, tag.WorkspaceID, tag.CreatedBy)
+	return err
 }
 
-func (r *tagRepository) GetByID() error {
-	// Implement the logic to get a tag record by ID from the database
-	// Example:
-	// row := r.db.QueryRow(ctx, "SELECT * FROM tag_table WHERE id = $	1", id)
-	//	var tag model.Tag
-	// if err := row.Scan(&tag.ID, &tag.Name); err != nil {
-	//     return nil, err
-	// }
-	// return &tag, nil
-
-	return nil // Placeholder return statement
+func (r *tagRepository) GetByID(ctx context.Context, id uuid.UUID) (*model.Tag, error) {
+	var tag model.Tag
+	query := `
+		SELECT id, name, workspace_id, created_by
+		FROM tags WHERE id = $1 AND deleted_at IS NULL
+	`
+	err := r.db.Executor(ctx).QueryRow(ctx, query, id).Scan(&tag.ID, &tag.Name, &tag.WorkspaceID, &tag.CreatedBy)
+	if err != nil {
+		return nil, err
+	}
+	return &tag, nil
 }
 
-func (r *tagRepository) List() error {
-	// Implement the logic to list tag records from the database
-	// Example:
-	// rows, err := r.db.Query(ctx, "SELECT * FROM tag_table")
-	// if err != nil {
-	//     return nil, err
-	// }
-	// defer rows.Close()
+func (r *tagRepository) List(ctx context.Context, workspaceID *uuid.UUID) ([]*model.Tag, error) {
+	query := `
+		SELECT id, name, workspace_id, created_by
+		FROM tags WHERE deleted_at IS NULL AND (workspace_id = $1 OR $1 IS NULL)
+	`
+	
+	rows, err := r.db.Executor(ctx).Query(ctx, query, workspaceID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
 
-	// var tags []*model.Tag
-	// for rows.Next() {
-	//     var tag model.Tag
-	//     if err := rows.Scan(&tag.ID, &tag.Name); err != nil {
-	//         return nil, err
-	//     }
-	//     tags = append(tags, &tag)
-	// }
-	// return tags, nil
-
-	return nil // Placeholder return statement
+	var tags []*model.Tag
+	for rows.Next() {
+		var tag model.Tag
+		if err := rows.Scan(&tag.ID, &tag.Name, &tag.WorkspaceID, &tag.CreatedBy); err != nil {
+			return nil, err
+		}
+		tags = append(tags, &tag)
+	}
+	return tags, nil
 }
 
-func (r *tagRepository) Update() error {
-	// Implement the logic to update a tag record in the database
-	// Example:
-	// _, err := r.db.Exec(ctx, "UPDATE tag_table SET column1 = $1 WHERE id = $2", value1, id)
-	return nil // Placeholder return statement
+func (r *tagRepository) Update(ctx context.Context, tag *model.Tag) error {
+	query := `
+		UPDATE tags SET name = $1, workspace_id = $2 WHERE id = $3
+	`
+	
+	_, err := r.db.Executor(ctx).Exec(ctx, query, tag.Name, tag.WorkspaceID, tag.ID)
+	return err
 }
 
-func (r *tagRepository) Delete() error {
-	// Implement the logic to delete a tag record from the database
-	// Example:
-	// _, err := r.db.Exec(ctx, "DELETE FROM tag_table WHERE id = $1", id)
-	return nil // Placeholder return statement
+func (r *tagRepository) Delete(ctx context.Context, id uuid.UUID) error {
+	query := `
+		UPDATE tags SET deleted_at = NOW() WHERE id = $1
+	`
+	
+	_, err := r.db.Executor(ctx).Exec(ctx, query, id)
+	return err
 }

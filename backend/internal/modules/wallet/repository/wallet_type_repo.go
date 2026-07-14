@@ -16,7 +16,7 @@ type walletTypeRepository struct {
 type WalletTypeRepository interface {
 	Create(ctx context.Context, walletType *model.WalletType) error
 	GetByID(ctx context.Context, id uuid.UUID) (*model.WalletType, error)
-	List(ctx context.Context) ([]*model.WalletType, error)
+	List(ctx context.Context, workspaceID uuid.UUID) ([]*model.WalletType, error)
 	Update(ctx context.Context, walletType *model.WalletType) error
 	Delete(ctx context.Context, id uuid.UUID) error
 }
@@ -63,12 +63,12 @@ func (w *walletTypeRepository) GetByID(ctx context.Context, id uuid.UUID) (*mode
 }
 
 // List implements WalletTypeRepository.
-func (w *walletTypeRepository) List(ctx context.Context) ([]*model.WalletType, error) {
+func (w *walletTypeRepository) List(ctx context.Context, workspaceID uuid.UUID) ([]*model.WalletType, error) {
 	query := `
 		SELECT id, name, description,workspace_id, created_by
-		FROM wallet_types WHERE deleted_at IS NULL
+		FROM wallet_types WHERE deleted_at IS NULL AND (workspace_id = $1 OR workspace_id IS NULL)
 	`
-	rows, err := w.db.Executor(ctx).Query(ctx, query)
+	rows, err := w.db.Executor(ctx).Query(ctx, query, workspaceID)
 	if err != nil {
 		return nil, err
 	}

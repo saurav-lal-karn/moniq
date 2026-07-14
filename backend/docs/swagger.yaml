@@ -7,6 +7,30 @@ definitions:
     required:
     - token
     type: object
+  dto.CreateWalletRequestDTO:
+    properties:
+      currency:
+        type: string
+      description:
+        type: string
+      name:
+        type: string
+      type_id:
+        type: string
+    required:
+    - currency
+    - name
+    - type_id
+    type: object
+  dto.CreateWalletTypeRequestDTO:
+    properties:
+      description:
+        type: string
+      name:
+        type: string
+    required:
+    - name
+    type: object
   dto.CreateWorkspaceMemberDTO:
     properties:
       role:
@@ -471,6 +495,130 @@ paths:
       summary: resend invitation to workspace
       tags:
       - WorkspaceInvitation
+  /wallet:
+    post:
+      consumes:
+      - application/json
+      description: create wallet in workspace
+      parameters:
+      - description: Workspace ID
+        in: header
+        name: x-workspace-id
+        required: true
+        type: string
+      - description: Create Wallet Request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/dto.CreateWalletRequestDTO'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/helper.Response'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/helper.Response'
+      security:
+      - BearerAuth: []
+      summary: create wallet in workspace
+      tags:
+      - Wallet
+  /wallet-type:
+    get:
+      consumes:
+      - application/json
+      description: List of wallet types
+      parameters:
+      - description: Workspace ID
+        in: header
+        name: x-workspace-id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/helper.Response'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/helper.Response'
+      security:
+      - BearerAuth: []
+      summary: List Wallet Type
+      tags:
+      - Wallet Type
+    post:
+      consumes:
+      - application/json
+      description: create wallet type in workspace
+      parameters:
+      - description: Workspace ID
+        in: header
+        name: x-workspace-id
+        required: true
+        type: string
+      - description: Create Wallet Type Request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/dto.CreateWalletTypeRequestDTO'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/helper.Response'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/helper.Response'
+      security:
+      - BearerAuth: []
+      summary: create wallet type in workspace
+      tags:
+      - Wallet Type
+  /wallet-type/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: Delete Wallet Type
+      parameters:
+      - description: Workspace ID
+        in: header
+        name: x-workspace-id
+        required: true
+        type: string
+      - description: Wallet Type Id
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/helper.Response'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/helper.Response'
+      security:
+      - BearerAuth: []
+      summary: Delete wallet type
+      tags:
+      - Wallet Type
   /workspace/{id}:
     delete:
       consumes:
