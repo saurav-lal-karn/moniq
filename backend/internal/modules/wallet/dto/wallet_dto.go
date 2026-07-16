@@ -11,6 +11,16 @@ type CreateWalletRequestDTO struct {
 	CreatedBy   uuid.UUID `json:"-"`
 }
 
+type UpdateWalletRequestDTO struct {
+	ID 			uuid.UUID `json:"id" binding:"required"`
+	Name        string    `json:"name" binding:"required"`
+	TypeID      uuid.UUID `json:"type_id" binding:"required"`
+	Currency    string    `json:"currency" binding:"required"`
+	Description string    `json:"description"`
+	WorkspaceID uuid.UUID `json:"-"`
+	CreatedBy   uuid.UUID `json:"-"`
+}
+
 type CreateWalletTypeRequestDTO struct {
 	Name string `json:"name" binding:"required"`
 	Description string `json:"description"`

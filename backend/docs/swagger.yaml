@@ -152,6 +152,24 @@ definitions:
     required:
     - id
     type: object
+  dto.UpdateWalletRequestDTO:
+    properties:
+      currency:
+        type: string
+      description:
+        type: string
+      id:
+        type: string
+      name:
+        type: string
+      type_id:
+        type: string
+    required:
+    - currency
+    - id
+    - name
+    - type_id
+    type: object
   dto.UpdateWorkspaceRequestDTO:
     properties:
       description:
@@ -645,6 +663,101 @@ paths:
       summary: Delete wallet type
       tags:
       - Wallet Type
+  /wallet/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: Delete Wallet
+      parameters:
+      - description: Wallet Id
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/helper.Response'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/helper.Response'
+      security:
+      - BearerAuth: []
+      summary: Delete Wallet
+      tags:
+      - Wallet
+    get:
+      consumes:
+      - application/json
+      description: Get wallet details
+      parameters:
+      - description: Workspace ID
+        in: header
+        name: x-workspace-id
+        required: true
+        type: string
+      - description: Wallet Id
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/helper.Response'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/helper.Response'
+      security:
+      - BearerAuth: []
+      summary: Get wallet details
+      tags:
+      - Wallet
+    put:
+      consumes:
+      - application/json
+      description: Update wallet
+      parameters:
+      - description: Workspace ID
+        in: header
+        name: x-workspace-id
+        required: true
+        type: string
+      - description: Wallet Id
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Updated wallet details
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/dto.UpdateWalletRequestDTO'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/helper.Response'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/helper.Response'
+      security:
+      - BearerAuth: []
+      summary: Update wallet
+      tags:
+      - Wallet
   /workspace/{id}:
     delete:
       consumes:

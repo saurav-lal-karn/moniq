@@ -25,6 +25,9 @@ func RegisterWalletRoutes(router *gin.RouterGroup, txm *database.TxManager) {
 
 	walletGroupRoutes.POST("", walletHandler.CreateWallet)
 	walletGroupRoutes.GET("", walletHandler.ListAll)
+	walletGroupRoutes.GET("/:id", walletHandler.GetByID)
+	walletGroupRoutes.PUT("/:id", walletHandler.UpdateWallet)
+	walletGroupRoutes.DELETE("/:id", walletHandler.DeleteWallet)
 
 
 	// Setup the wallet type routes

@@ -13,10 +13,13 @@ var (
 	ErrInvalidRefreshToken = errors.New("invalid refresh token")
 	ErrExpiredToken = errors.New("token has expired")
 	ErrInvalidUUID = errors.New("Invalid UUID")
+	ErrUnauthorized = errors.New("You don't have permission to perform this action. Please contact the administrator")
 
 	UserIdNotFoundInContext = errors.New("User Id not found in context. Please try again")
 	EmailNotFoundInContext = errors.New("Email not found in context. Please try again")
 	RoleNotFoundInContext = errors.New("Role not found in context. Please try again")
 	
 	ValueNotFound = errors.New("Value not found")
+	ErrWalletTypeNotFound = errors.New("Wallet Type not found. Please try again")
+	ErrWalletNotFound = errors.New("Wallet not found. Please try again")
 )
