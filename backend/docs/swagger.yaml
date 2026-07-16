@@ -496,6 +496,32 @@ paths:
       tags:
       - WorkspaceInvitation
   /wallet:
+    get:
+      consumes:
+      - application/json
+      description: List of wallets
+      parameters:
+      - description: Workspace ID
+        in: header
+        name: x-workspace-id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/helper.Response'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/helper.Response'
+      security:
+      - BearerAuth: []
+      summary: List Wallets
+      tags:
+      - Wallet
     post:
       consumes:
       - application/json
@@ -536,7 +562,7 @@ paths:
       parameters:
       - description: Workspace ID
         in: header
-        name: x-workspace-id
+        name: X-Workspace-Id
         required: true
         type: string
       produces:

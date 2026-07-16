@@ -15,6 +15,12 @@ type WorkspaceChecker interface {
 
 func WorkspaceAccess(checker WorkspaceChecker) gin.HandlerFunc {
 	return func(ctx *gin.Context) {
+		// Skip workspace access check for preflight OPTIONS requests
+		if ctx.Request.Method == "OPTIONS" {
+			ctx.Next()
+			return
+		}
+
 		workspaceIdStr := ctx.GetHeader("X-Workspace-Id")
 		if workspaceIdStr == "" {
 			helper.ErrorResponse(ctx, http.StatusBadRequest, "X-Workspace-Id header is required")

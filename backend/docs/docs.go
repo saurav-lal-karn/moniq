@@ -481,6 +481,47 @@ const docTemplate = `{
             }
         },
         "/wallet": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "List of wallets",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Wallet"
+                ],
+                "summary": "List Wallets",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Workspace ID",
+                        "name": "x-workspace-id",
+                        "in": "header",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/helper.Response"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/helper.Response"
+                        }
+                    }
+                }
+            },
             "post": {
                 "security": [
                     {
@@ -554,7 +595,7 @@ const docTemplate = `{
                     {
                         "type": "string",
                         "description": "Workspace ID",
-                        "name": "x-workspace-id",
+                        "name": "X-Workspace-Id",
                         "in": "header",
                         "required": true
                     }

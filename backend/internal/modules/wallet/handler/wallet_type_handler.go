@@ -29,7 +29,7 @@ func NewWalletTypeHandler(service service.WalletTypeService) *walletTypeHandler 
 // @Accept json
 // @Produce json
 // @Security BearerAuth
-// @Param x-workspace-id header string true "Workspace ID"
+// @Param X-Workspace-Id header string true "Workspace ID"
 // @Success 201 {object} helper.Response
 // @Failure 400 {object} helper.Response
 // @Router /wallet-type [get]

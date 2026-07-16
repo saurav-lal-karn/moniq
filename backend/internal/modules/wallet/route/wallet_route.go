@@ -19,22 +19,23 @@ func RegisterWalletRoutes(router *gin.RouterGroup, txm *database.TxManager) {
 	walletService := service.NewWalletService(walletRepo, walletTypeRepo)
 	walletHandler := handler.NewWalletHandler(walletService)
 
-	walletGroupRoutes := router.Group("/wallet")
+	walletGroupRoutes := router.Group("wallet")
 	walletGroupRoutes.Use(middleware.Auth())
 	walletGroupRoutes.Use(middleware.WorkspaceAccess(memberRepo))
 
-	walletGroupRoutes.POST("/", walletHandler.CreateWallet)
+	walletGroupRoutes.POST("", walletHandler.CreateWallet)
+	walletGroupRoutes.GET("", walletHandler.ListAll)
 
 
 	// Setup the wallet type routes
 	walletTypeService := service.NewWalletTypeService(walletTypeRepo)
 	walletTypeHandler := handler.NewWalletTypeHandler(walletTypeService)
 
-	walletTypeGroupRoutes := router.Group("/wallet-type")
+	walletTypeGroupRoutes := router.Group("wallet-type")
 	walletTypeGroupRoutes.Use(middleware.Auth())
 	walletTypeGroupRoutes.Use(middleware.WorkspaceAccess(memberRepo))
 
-	walletTypeGroupRoutes.GET("/", walletTypeHandler.ListAll)
-	walletTypeGroupRoutes.POST("/", walletTypeHandler.Create)
+	walletTypeGroupRoutes.GET("", walletTypeHandler.ListAll)
+	walletTypeGroupRoutes.POST("", walletTypeHandler.Create)
 	walletTypeGroupRoutes.DELETE("/:id", walletTypeHandler.Delete)
 }

@@ -51,7 +51,7 @@ func (r *tagRepository) GetByID(ctx context.Context, id uuid.UUID) (*model.Tag, 
 func (r *tagRepository) List(ctx context.Context, workspaceID *uuid.UUID) ([]*model.Tag, error) {
 	query := `
 		SELECT id, name, workspace_id, created_by
-		FROM tags WHERE deleted_at IS NULL AND (workspace_id = $1 OR $1 IS NULL)
+		FROM tags WHERE deleted_at IS NULL AND (workspace_id = $1 OR workspace_id IS NULL OR $1 IS NULL)
 	`
 	
 	rows, err := r.db.Executor(ctx).Query(ctx, query, workspaceID)

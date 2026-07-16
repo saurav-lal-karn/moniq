@@ -19,13 +19,21 @@ export async function apiFetch<T>(
         ...options.headers,
     };
 
-    // Inject active workspace ID if available
+    // Inject active workspace ID and Auth token if available
     if (typeof window !== "undefined") {
         const workspaceId = sessionStorage.getItem("active_workspace_id");
         if (workspaceId) {
             options.headers = {
                 ...options.headers,
-                "X-Workspace-ID": workspaceId,
+                "X-Workspace-Id": workspaceId,
+            };
+        }
+
+        const token = sessionStorage.getItem("ws_token");
+        if (token) {
+            options.headers = {
+                ...options.headers,
+                "Authorization": `Bearer ${token}`,
             };
         }
     }

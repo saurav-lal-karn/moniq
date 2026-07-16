@@ -25,12 +25,12 @@ Moniq is built using a modern, fast, and robust stack:
 
 ## 🚀 Getting Started
 
-To get a local copy of Moniq up and running, follow these simple steps.
+Follow these steps to get Moniq up and running locally.
 
 ### Prerequisites
 
 - Go (1.21 or higher)
-- Node.js (v18 or higher) and npm/pnpm
+- Node.js (v18 or higher) and npm/yarn/pnpm
 
 ### Setup & Installation
 
@@ -40,20 +40,28 @@ To get a local copy of Moniq up and running, follow these simple steps.
    cd moniq
    ```
 
-2. **Configure Environment Variables**
-   Create a `.env` file in the root directory (or respective frontend/backend folders) and set up your database credentials and server port configurations.
-
-3. **Run the Backend Server**
+2. **Backend Setup**
    ```bash
-   # Navigate to the backend directory (if applicable)
-   go run main.go
+   cd backend
+   # Copy environment example and configure it
+   cp .env.example .env
+   
+   # Run the development server (with hot reload using air)
+   make dev
+   # Or run directly:
+   go run ./cmd/server
    ```
 
-4. **Run the Frontend Application**
+3. **Frontend Setup**
    ```bash
-   # Navigate to the frontend directory
+   cd ../frontend
+   # Copy environment example
+   cp .env.example .env
+   
+   # Install dependencies
    npm install
-   # Run the development server
+   
+   # Run development server
    npm run dev
    ```
 
@@ -63,15 +71,43 @@ To get a local copy of Moniq up and running, follow these simple steps.
 
 ```text
 moniq/
-├── cmd/                # Entrypoints for the application
-├── internal/           # Core application code (domain, services, repositories)
-├── web/                # Frontend codebase (components, pages, styles)
-├── LICENSE             # Open-source license
-└── README.md           # Project documentation
+├── backend/                # Go Backend REST API
+│   ├── cmd/                # Application entrypoints (e.g., cmd/server/main.go)
+│   ├── internal/           # Business logic, repositories, handlers
+│   ├── pkg/                # Public/utility packages
+│   ├── migrations/         # Database migrations (SQL)
+│   └── Makefile            # Shortcut commands for running, testing, migrating
+│
+├── frontend/               # Next.js Frontend (TypeScript & Tailwind/shadcn)
+│   ├── src/                # Component files, custom hooks, and pages
+│   ├── public/             # Static assets
+│   └── components.json     # shadcn/ui configuration
+│
+└── ai-server/              # AI Service placeholder (future features)
 ```
+
+---
+
+## 💾 Database Migrations (Backend)
+
+The backend uses SQL-based migrations. You can manage migrations using the `Makefile` inside the `backend/` directory:
+
+- **Create a new migration**:
+  ```bash
+  make migrate-create name=migration_name
+  ```
+- **Apply migrations**:
+  ```bash
+  make migrate-up
+  ```
+- **Rollback last migration**:
+  ```bash
+  make migrate-down
+  ```
 
 ---
 
 ## 📄 License
 
 Distributed under the MIT License. See [LICENSE](file:///Users/sauravlalkarn/Projects/personal/moniq/LICENSE) for more information.
+

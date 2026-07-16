@@ -23,3 +23,25 @@ func ToWalletTypeResponseList(walletTypes []*model.WalletType) []dto.WalletTypeR
 	}
 	return result
 }
+
+func ToWalletResponse(walletModel *model.Wallet) dto.WalletResponseDTO {
+	return dto.WalletResponseDTO{
+		ID: walletModel.ID.String(),
+		Name: walletModel.Name,
+		Description: walletModel.Description,
+		WorkspaceID: walletModel.WorkspaceID,
+		CreatedBy: walletModel.CreatedBy,
+		TypeID: walletModel.TypeID,
+		Currency: walletModel.Currency,
+	}
+}
+
+func ToWalletResponseList(wallets []*model.Wallet) []dto.WalletResponseDTO{
+	result := make([]dto.WalletResponseDTO, 0, len(wallets)) 
+	
+	for _, wallet := range wallets {
+		result = append(result, ToWalletResponse(wallet))
+	}
+	return result
+}
+

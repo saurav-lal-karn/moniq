@@ -11,6 +11,12 @@ import (
 
 func Auth() gin.HandlerFunc {
 	return func(ctx *gin.Context) {
+		// Skip authentication for preflight OPTIONS requests
+		if ctx.Request.Method == "OPTIONS" {
+			ctx.Next()
+			return
+		}
+
 		var tokenString string
 
 		// Get the token from the cookie

@@ -1,7 +1,7 @@
 DB_URL=postgres://postgres:postgres@localhost:5433/moniq?sslmode=disable
 MIGRATIONS_PATH=./migrations
 
-.PHONY: build run swagger test clean tidy dev migrate-up migrate-down migrate-force migrate-version migrate-create
+.PHONY: build run swagger test clean tidy dev migrate-up migrate-down migrate-force migrate-version migrate-create seed
 
 # Build the application
 build: swagger
@@ -10,6 +10,10 @@ build: swagger
 # Run the application
 run: swagger
 	go run ./cmd/server
+
+# Seed the database with default wallet types and tags
+seed:
+	go run ./cmd/seed
 
 # Generate swagger docs
 swagger:

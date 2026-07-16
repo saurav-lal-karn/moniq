@@ -27,11 +27,13 @@ func SetupRouter(cfg *config.Config, db *pgxpool.Pool, rdb *redis.Client) *gin.E
 	corsConfig := cors.DefaultConfig()
 	corsConfig.AllowOrigins = []string{cfg.ClientUrl}
 	corsConfig.AllowCredentials = true
+	// corsConfig.AllowAllOrigins = true
+	corsConfig.AllowMethods = []string{"GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"}
 	corsConfig.AllowHeaders = []string{"Authorization", "Content-Type", "X-Workspace-Id"}
 
+	router.Use(cors.New(corsConfig)) // CORS must be first to handle preflight
 	router.Use(middleware.Logger()) // Custom structured logging middleware
 	router.Use(gin.Recovery())      // Crash recovery
-	router.Use(cors.New(corsConfig))
 
 	// Standard Routes (Health and Readiness)
 	router.GET("/health", func(c *gin.Context) {

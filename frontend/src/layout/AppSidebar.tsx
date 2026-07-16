@@ -38,6 +38,11 @@ const navigation: NavSection[] = [
                 name: "Dashboard",
                 path: "/dashboard",
             },
+            {
+                icon: <DollarLineIcon />,
+                name: "Wallets",
+                path: "/wallet",
+            },
         ],
     },
     {
