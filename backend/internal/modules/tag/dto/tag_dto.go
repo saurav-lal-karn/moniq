@@ -3,10 +3,17 @@ package dto
 import "github.com/google/uuid"
 
 type CreateTagRequestDTO struct {
-	Name        string     `json:"name" validate:"required"`
-	WorkspaceID *uuid.UUID `json:"workspaceId"`
+	Name        string     `json:"name" binding:"required"`
+	WorkspaceID *uuid.UUID `json:"-"`
 }
 
 type UpdateTagRequestDTO struct {
-	Name string `json:"name"`
+	Name string `json:"name" binding:"required"`
+}
+
+type TagResponseDTO struct {
+	ID          string     `json:"id"`
+	Name        string     `json:"name"`
+	WorkspaceID *uuid.UUID `json:"workspace_id"`
+	CreatedBy   *uuid.UUID `json:"created_by"`
 }

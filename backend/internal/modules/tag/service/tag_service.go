@@ -4,6 +4,8 @@ import (
 	"context"
 
 	"github.com/google/uuid"
+	"github.com/jackc/pgx/v5"
+	"github.com/saurav-lal-karn/moniq/backend/internal/helper"
 	"github.com/saurav-lal-karn/moniq/backend/internal/modules/tag/dto"
 	"github.com/saurav-lal-karn/moniq/backend/internal/modules/tag/model"
 	"github.com/saurav-lal-karn/moniq/backend/internal/modules/tag/repository"
@@ -34,12 +36,19 @@ func (s *tagService) Create(ctx context.Context, req *dto.CreateTagRequestDTO, c
 		CreatedBy:   createdBy,
 	}
 	tag.ID = uuid.New()
-
 	return s.repo.Create(ctx, tag)
 }
 
 func (s *tagService) GetByID(ctx context.Context, id uuid.UUID) (*model.Tag, error) {
-	return s.repo.GetByID(ctx, id)
+	tag, err := s.repo.GetByID(ctx, id)
+	if err != nil {
+		if err == pgx.ErrNoRows {
+			return nil, helper.ErrTagNotFound
+		}
+
+		return nil, err
+	}
+	return tag, nil
 }
 
 func (s *tagService) List(ctx context.Context, workspaceID *uuid.UUID) ([]*model.Tag, error) {
@@ -49,14 +58,23 @@ func (s *tagService) List(ctx context.Context, workspaceID *uuid.UUID) ([]*model
 func (s *tagService) Update(ctx context.Context, id uuid.UUID, req *dto.UpdateTagRequestDTO) error {
 	tag, err := s.repo.GetByID(ctx, id)
 	if err != nil {
+		if err == pgx.ErrNoRows {
+			return helper.ErrTagNotFound
+		}
 		return err
 	}
 
 	tag.Name = req.Name
-
 	return s.repo.Update(ctx, tag)
 }
 
 func (s *tagService) Delete(ctx context.Context, id uuid.UUID) error {
+	_, err := s.repo.GetByID(ctx, id)
+	if err != nil {
+		if err == pgx.ErrNoRows {
+			return helper.ErrTagNotFound
+		}
+		return err
+	}
 	return s.repo.Delete(ctx, id)
 }

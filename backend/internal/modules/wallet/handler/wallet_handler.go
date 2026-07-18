@@ -159,8 +159,10 @@ func (h *walletHandler) GetByID(ctx *gin.Context) {
 		helper.ErrorResponse(ctx, http.StatusInternalServerError, err.Error())
 		return
 	}
+
+	response := mapper.ToWalletResponse(wallet)
 	
-	helper.SuccessResponse(ctx, http.StatusOK, "Wallet details fetched successfully", wallet)
+	helper.SuccessResponse(ctx, http.StatusOK, "Wallet details fetched successfully", response)
 }
 
 // Update wallet godoc
@@ -242,6 +244,7 @@ func (h *walletHandler) UpdateWallet(ctx *gin.Context) {
 // @Accept json
 // @Produce json
 // @Security BearerAuth
+// @Param x-workspace-id header string true "Workspace ID"
 // @Param id path string true "Wallet Id"
 // @Success 200 {object} helper.Response
 // @Failure 400 {object} helper.Response

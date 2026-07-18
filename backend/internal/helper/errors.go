@@ -22,4 +22,7 @@ var (
 	ValueNotFound = errors.New("Value not found")
 	ErrWalletTypeNotFound = errors.New("Wallet Type not found. Please try again")
 	ErrWalletNotFound = errors.New("Wallet not found. Please try again")
+
+	ErrTagNotFound = errors.New("Tag not found. Please try again")
+	ErrContactNotFound = errors.New("Contact not found. Please try again")
 )

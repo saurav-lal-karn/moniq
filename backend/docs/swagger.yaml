@@ -7,6 +7,35 @@ definitions:
     required:
     - token
     type: object
+  dto.CreateContactRequestDTO:
+    properties:
+      address:
+        type: string
+      email:
+        type: string
+      name:
+        type: string
+      phone:
+        type: string
+      type:
+        enum:
+        - lender
+        - employee
+        - client
+        - vendor
+        - other
+        type: string
+    required:
+    - name
+    - type
+    type: object
+  dto.CreateTagRequestDTO:
+    properties:
+      name:
+        type: string
+    required:
+    - name
+    type: object
   dto.CreateWalletRequestDTO:
     properties:
       currency:
@@ -151,6 +180,35 @@ definitions:
         type: string
     required:
     - id
+    type: object
+  dto.UpdateContactRequestDTO:
+    properties:
+      address:
+        type: string
+      email:
+        type: string
+      name:
+        type: string
+      phone:
+        type: string
+      type:
+        enum:
+        - lender
+        - employee
+        - client
+        - vendor
+        - other
+        type: string
+    required:
+    - name
+    - type
+    type: object
+  dto.UpdateTagRequestDTO:
+    properties:
+      name:
+        type: string
+    required:
+    - name
     type: object
   dto.UpdateWalletRequestDTO:
     properties:
@@ -368,6 +426,165 @@ paths:
       summary: Register user
       tags:
       - Auth
+  /contact:
+    get:
+      consumes:
+      - application/json
+      description: List all contacts in the workspace
+      parameters:
+      - description: Workspace ID
+        in: header
+        name: x-workspace-id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/helper.Response'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/helper.Response'
+      security:
+      - BearerAuth: []
+      summary: List all contacts
+      tags:
+      - Contact
+    post:
+      consumes:
+      - application/json
+      description: Create a new contact in the workspace
+      parameters:
+      - description: Workspace ID
+        in: header
+        name: x-workspace-id
+        required: true
+        type: string
+      - description: Create Contact Request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/dto.CreateContactRequestDTO'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/helper.Response'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/helper.Response'
+      security:
+      - BearerAuth: []
+      summary: Create a new contact
+      tags:
+      - Contact
+  /contact/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: Delete contact by ID
+      parameters:
+      - description: Workspace ID
+        in: header
+        name: x-workspace-id
+        required: true
+        type: string
+      - description: Contact ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/helper.Response'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/helper.Response'
+      security:
+      - BearerAuth: []
+      summary: Delete contact
+      tags:
+      - Contact
+    get:
+      consumes:
+      - application/json
+      description: Get contact details by ID
+      parameters:
+      - description: Workspace ID
+        in: header
+        name: x-workspace-id
+        required: true
+        type: string
+      - description: Contact ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/helper.Response'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/helper.Response'
+      security:
+      - BearerAuth: []
+      summary: Get contact by ID
+      tags:
+      - Contact
+    put:
+      consumes:
+      - application/json
+      description: Update contact details
+      parameters:
+      - description: Workspace ID
+        in: header
+        name: x-workspace-id
+        required: true
+        type: string
+      - description: Contact ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Update Contact Request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/dto.UpdateContactRequestDTO'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/helper.Response'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/helper.Response'
+      security:
+      - BearerAuth: []
+      summary: Update contact
+      tags:
+      - Contact
   /invitation/accept:
     post:
       consumes:
@@ -513,6 +730,165 @@ paths:
       summary: resend invitation to workspace
       tags:
       - WorkspaceInvitation
+  /tag:
+    get:
+      consumes:
+      - application/json
+      description: List all tags in the workspace (includes system tags)
+      parameters:
+      - description: Workspace ID
+        in: header
+        name: x-workspace-id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/helper.Response'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/helper.Response'
+      security:
+      - BearerAuth: []
+      summary: List all tags
+      tags:
+      - Tag
+    post:
+      consumes:
+      - application/json
+      description: Create a new tag in the workspace
+      parameters:
+      - description: Workspace ID
+        in: header
+        name: x-workspace-id
+        required: true
+        type: string
+      - description: Create Tag Request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/dto.CreateTagRequestDTO'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/helper.Response'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/helper.Response'
+      security:
+      - BearerAuth: []
+      summary: Create a new tag
+      tags:
+      - Tag
+  /tag/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: Delete tag by ID
+      parameters:
+      - description: Workspace ID
+        in: header
+        name: x-workspace-id
+        required: true
+        type: string
+      - description: Tag ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/helper.Response'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/helper.Response'
+      security:
+      - BearerAuth: []
+      summary: Delete tag
+      tags:
+      - Tag
+    get:
+      consumes:
+      - application/json
+      description: Get tag details by ID
+      parameters:
+      - description: Workspace ID
+        in: header
+        name: x-workspace-id
+        required: true
+        type: string
+      - description: Tag ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/helper.Response'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/helper.Response'
+      security:
+      - BearerAuth: []
+      summary: Get tag by ID
+      tags:
+      - Tag
+    put:
+      consumes:
+      - application/json
+      description: Update tag details
+      parameters:
+      - description: Workspace ID
+        in: header
+        name: x-workspace-id
+        required: true
+        type: string
+      - description: Tag ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Update Tag Request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/dto.UpdateTagRequestDTO'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/helper.Response'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/helper.Response'
+      security:
+      - BearerAuth: []
+      summary: Update tag
+      tags:
+      - Tag
   /wallet:
     get:
       consumes:
@@ -669,6 +1045,11 @@ paths:
       - application/json
       description: Delete Wallet
       parameters:
+      - description: Workspace ID
+        in: header
+        name: x-workspace-id
+        required: true
+        type: string
       - description: Wallet Id
         in: path
         name: id
