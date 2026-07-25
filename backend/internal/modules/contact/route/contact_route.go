@@ -2,20 +2,19 @@ package route
 
 import (
 	"github.com/gin-gonic/gin"
-	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/saurav-lal-karn/moniq/backend/internal/middleware"
 	"github.com/saurav-lal-karn/moniq/backend/internal/modules/contact/handler"
 	"github.com/saurav-lal-karn/moniq/backend/internal/modules/contact/repository"
 	"github.com/saurav-lal-karn/moniq/backend/internal/modules/contact/service"
 
-	memberRepository "github.com/saurav-lal-karn/moniq/backend/internal/modules/workspace/repository"
 	"github.com/saurav-lal-karn/moniq/backend/internal/database"
+	memberRepository "github.com/saurav-lal-karn/moniq/backend/internal/modules/workspace/repository"
 )
 
-func RegisterContactRoutes(router *gin.RouterGroup, db *pgxpool.Pool, txm *database.TxManager) {
+func RegisterContactRoutes(router *gin.RouterGroup, txm *database.TxManager) {
 	memberRepo := memberRepository.NewWorkspaceMemberRepository(txm)
 
-	contactRepo := repository.NewContactRepository(db)
+	contactRepo := repository.NewContactRepository(txm)
 	contactService := service.NewContactService(contactRepo)
 	contactHandler := handler.NewContactHandler(contactService)
 

@@ -115,35 +115,5 @@ func main() {
 		}
 	}
 
-	// 6. Seed Contacts (sample contacts for demonstration)
-	contacts := []ContactSeed{
-		{Name: "John Doe", Type: "client"},
-		{Name: "Jane Smith", Type: "vendor"},
-		{Name: "Bob Johnson", Type: "employee"},
-		{Name: "Alice Williams", Type: "lender"},
-		{Name: "Charlie Brown", Type: "other"},
-	}
-
-	logger.Info("Seeding contacts...")
-	for _, contact := range contacts {
-		var exists bool
-		err := db.QueryRow(ctx, "SELECT EXISTS(SELECT 1 FROM contacts WHERE name = $1 AND workspace_id IS NULL)", contact.Name).Scan(&exists)
-		if err != nil {
-			logger.Error("Failed to check contact existence", logger.StringField("name", contact.Name), logger.ErrorField(err))
-			continue
-		}
-
-		if !exists {
-			_, err = db.Exec(ctx, "INSERT INTO contacts (name, type, workspace_id, created_by) VALUES ($1, $2, NULL, NULL)", contact.Name, contact.Type)
-			if err != nil {
-				logger.Error("Failed to seed contact", logger.StringField("name", contact.Name), logger.ErrorField(err))
-			} else {
-				logger.Info("Seeded contact", logger.StringField("name", contact.Name))
-			}
-		} else {
-			logger.Info("Contact already exists, skipping", logger.StringField("name", contact.Name))
-		}
-	}
-
 	logger.Info("Database seeding completed successfully!")
 }

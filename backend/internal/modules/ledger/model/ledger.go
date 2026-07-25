@@ -21,11 +21,11 @@ const (
 type Transaction struct {
 	model.BaseModel
 
-	Amount float64 
+	Amount float64
 	Date time.Time
 	Description *string
 	Type TransactionType
-	
+
 	WalletID uuid.UUID
 	ContactID *uuid.UUID
 	WorkspaceID uuid.UUID

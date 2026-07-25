@@ -19,6 +19,7 @@ type WalletRepository interface {
 	Update(ctx context.Context, wallet *model.Wallet) error
 	Delete(ctx context.Context, id uuid.UUID) error
 	CheckOwnerOfWallet(ctx context.Context, walletID uuid.UUID, userID uuid.UUID, workspaceID uuid.UUID) (bool, error)
+	CheckIfExists(ctx context.Context, id uuid.UUID) (bool, error)
 }
 
 func NewWalletRepository(db database.DB) WalletRepository {
@@ -98,4 +99,10 @@ func (r *walletRepository) CheckOwnerOfWallet(ctx context.Context, walletID uuid
 	var owns bool
 	err := r.db.Executor(ctx).QueryRow(ctx, "SELECT EXISTS(SELECT 1 from wallets WHERE id = $1 AND workspace_id = $2 AND created_by = $3 AND deleted_at IS NULL)", walletID, workspaceID, userID).Scan(&owns)
 	return owns, err
+}
+
+func (r *walletRepository) CheckIfExists(ctx context.Context, id uuid.UUID) (bool, error) {
+	var exists bool
+	err := r.db.Executor(ctx).QueryRow(ctx, "SELECT EXISTS(SELECT 1 from wallets WHERE id = $1 AND deleted_at IS NULL)", id).Scan(&exists)
+	return exists, err
 }

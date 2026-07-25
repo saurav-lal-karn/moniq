@@ -976,6 +976,58 @@ const docTemplate = `{
                 }
             }
         },
+        "/transaction": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Create transaction",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Transaction"
+                ],
+                "summary": "Create transaction",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Workspace ID",
+                        "name": "x-workspace-id",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "description": "Create Transaction Request",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.CreateTransactionRequestDTO"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/helper.Response"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/helper.Response"
+                        }
+                    }
+                }
+            }
+        },
         "/wallet": {
             "get": {
                 "security": [
@@ -1823,6 +1875,53 @@ const docTemplate = `{
                 }
             }
         },
+        "dto.CreateTransactionRequestDTO": {
+            "type": "object",
+            "required": [
+                "amount",
+                "date",
+                "items",
+                "type",
+                "wallet_id"
+            ],
+            "properties": {
+                "amount": {
+                    "type": "number"
+                },
+                "contact_id": {
+                    "type": "string"
+                },
+                "date": {
+                    "$ref": "#/definitions/helper.Date"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "destination_wallet_id": {
+                    "type": "string"
+                },
+                "items": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/dto.TransactionItemRequestDTO"
+                    }
+                },
+                "type": {
+                    "type": "string",
+                    "enum": [
+                        "expense",
+                        "income",
+                        "transfer-in",
+                        "transfer-out",
+                        "investment",
+                        "other"
+                    ]
+                },
+                "wallet_id": {
+                    "type": "string"
+                }
+            }
+        },
         "dto.CreateWalletRequestDTO": {
             "type": "object",
             "required": [
@@ -2042,6 +2141,29 @@ const docTemplate = `{
                 }
             }
         },
+        "dto.TransactionItemRequestDTO": {
+            "type": "object",
+            "required": [
+                "name",
+                "price",
+                "quantity",
+                "total"
+            ],
+            "properties": {
+                "name": {
+                    "type": "string"
+                },
+                "price": {
+                    "type": "number"
+                },
+                "quantity": {
+                    "type": "number"
+                },
+                "total": {
+                    "type": "number"
+                }
+            }
+        },
         "dto.UpdateContactRequestDTO": {
             "type": "object",
             "required": [
@@ -2138,6 +2260,14 @@ const docTemplate = `{
                             "$ref": "#/definitions/model.WorkspaceType"
                         }
                     ]
+                }
+            }
+        },
+        "helper.Date": {
+            "type": "object",
+            "properties": {
+                "time.Time": {
+                    "type": "string"
                 }
             }
         },

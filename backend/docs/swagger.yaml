@@ -36,6 +36,40 @@ definitions:
     required:
     - name
     type: object
+  dto.CreateTransactionRequestDTO:
+    properties:
+      amount:
+        type: number
+      contact_id:
+        type: string
+      date:
+        $ref: '#/definitions/helper.Date'
+      description:
+        type: string
+      destination_wallet_id:
+        type: string
+      items:
+        items:
+          $ref: '#/definitions/dto.TransactionItemRequestDTO'
+        type: array
+      type:
+        enum:
+        - expense
+        - income
+        - transfer-in
+        - transfer-out
+        - investment
+        - other
+        type: string
+      wallet_id:
+        type: string
+    required:
+    - amount
+    - date
+    - items
+    - type
+    - wallet_id
+    type: object
   dto.CreateWalletRequestDTO:
     properties:
       currency:
@@ -181,6 +215,22 @@ definitions:
     required:
     - id
     type: object
+  dto.TransactionItemRequestDTO:
+    properties:
+      name:
+        type: string
+      price:
+        type: number
+      quantity:
+        type: number
+      total:
+        type: number
+    required:
+    - name
+    - price
+    - quantity
+    - total
+    type: object
   dto.UpdateContactRequestDTO:
     properties:
       address:
@@ -247,6 +297,11 @@ definitions:
     - id
     - name
     - type
+    type: object
+  helper.Date:
+    properties:
+      time.Time:
+        type: string
     type: object
   helper.Response:
     properties:
@@ -889,6 +944,39 @@ paths:
       summary: Update tag
       tags:
       - Tag
+  /transaction:
+    post:
+      consumes:
+      - application/json
+      description: Create transaction
+      parameters:
+      - description: Workspace ID
+        in: header
+        name: x-workspace-id
+        required: true
+        type: string
+      - description: Create Transaction Request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/dto.CreateTransactionRequestDTO'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/helper.Response'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/helper.Response'
+      security:
+      - BearerAuth: []
+      summary: Create transaction
+      tags:
+      - Transaction
   /wallet:
     get:
       consumes:

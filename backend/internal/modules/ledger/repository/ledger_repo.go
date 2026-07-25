@@ -1,85 +1,142 @@
 package repository
 
-import "github.com/jackc/pgx/v5/pgxpool"
+import (
+	"context"
+
+	"github.com/google/uuid"
+	"github.com/saurav-lal-karn/moniq/backend/internal/database"
+	"github.com/saurav-lal-karn/moniq/backend/internal/modules/ledger/model"
+)
 
 type ledgerRepository struct {
-	db *pgxpool.Pool
+	db database.DB
 }
 
 type LedgerRepository interface {
 	// Define methods for ledger-related database operations here
-	Create() error
-	GetByID() error
-	List() error
-	Update() error
-	Delete() error
+	Create(ctx context.Context, ledgerEntry *model.LedgerEntry) error
+	GetByID(ctx context.Context, id uuid.UUID) (*model.LedgerEntry, error)
+	List(ctx context.Context, workspaceID uuid.UUID) ([]*model.LedgerEntry, error)
+	Update(ctx context.Context, ledgerEntry *model.LedgerEntry) error
+	Delete(ctx context.Context, id uuid.UUID) error
 }
 
-func NewLedgerRepository(db *pgxpool.Pool) LedgerRepository {
+func NewLedgerRepository(db database.DB) LedgerRepository {
 	return &ledgerRepository{
 		db: db,
 	}
 }
 
-func (r *ledgerRepository) Create() error {
-	// Implement the logic to create a new ledger record in the database
-	// Example:
-	// _, err := r.db.Exec(ctx, "INSERT INTO ledger_table (column1, column2) VALUES ($1, $2)", value1, value2)
-	// return err
+func (r *ledgerRepository) Create(ctx context.Context, ledgerEntry *model.LedgerEntry) error {
+	query := `
+		INSERT INTO ledger_entries(
+			id,
+			amount,
+			date,
+			description,
+			direction,
+			transaction_id,
+			wallet_id,
+			workspace_id,
+			created_by,
+			transfer_group_id
+		)
+		VALUES($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
+	`
 
-	return nil // Placeholder return statement
+	_, err := r.db.Executor(ctx).Exec(ctx, query, ledgerEntry.ID, ledgerEntry.Amount, ledgerEntry.Date, ledgerEntry.Description, ledgerEntry.Direction, ledgerEntry.TransactionID, ledgerEntry.WalletID, ledgerEntry.WorkspaceID, ledgerEntry.CreatedBy, ledgerEntry.TransferGroupID)
+
+	if err != nil {
+		return err
+	}
+	
+	return nil
 }
 
-func (r *ledgerRepository) GetByID() error {
-	// Implement the logic to get a ledger record by ID from the database
-	// Example:
-	// row := r.db.QueryRow(ctx, "SELECT * FROM ledger_table WHERE id = $1", id)
-	//	var ledger model.Ledger
-	// if err := row.Scan(&ledger.ID, &ledger.Name); err != nil {
-	//     return nil, err
-	// }
-	// return &ledger, nil
+func (r *ledgerRepository) GetByID(ctx context.Context, id uuid.UUID) (*model.LedgerEntry, error) {
+	query := `
+		SELECT 
+			id,
+			amount,
+			date,
+			description,
+			direction,
+			transaction_id,
+			wallet_id,
+			workspace_id,
+			created_by,
+			transfer_group_id
+		FROM ledger_entries
+		WHERE id = $1
+		AND deleted_at IS NULL
+	`
 
-	return nil // Placeholder return statement
+	var ledgerEntry model.LedgerEntry
+	err := r.db.Executor(ctx).QueryRow(ctx, query, id).Scan(&ledgerEntry.ID, &ledgerEntry.Amount, &ledgerEntry.Date, &ledgerEntry.Description, &ledgerEntry.Direction, &ledgerEntry.TransactionID, &ledgerEntry.WalletID, &ledgerEntry.WorkspaceID, &ledgerEntry.CreatedBy, &ledgerEntry.TransferGroupID)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return &ledgerEntry, nil
 }
 
-func (r *ledgerRepository) List() error {
-	// Implement the logic to list ledger records from the database
-	// Example:
-	// rows, err := r.db.Query(ctx, "SELECT * FROM ledger_table")
-	// if err != nil {
-	//     return nil, err
-	// }
-	// defer rows.Close()
+func (r *ledgerRepository) List(ctx context.Context, workspaceID uuid.UUID) ([]*model.LedgerEntry, error) {
+	rows, err := r.db.Executor(ctx).Query(ctx, "SELECT * FROM ledger_entries WHERE workspace_id = $1 AND deleted_at IS NULL", workspaceID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
 
-	// var ledgers []*model.Ledger
-	// for rows.Next() {
-	//     var ledger model.Ledger
-	//	 if err := rows.Scan(&ledger.ID, &ledger.Name); err != nil {
-	//		 return nil, err
-	//	 }
-	//     ledgers = append(ledgers, &ledger)
-	// }
+	var ledgerEntries []*model.LedgerEntry
+	for rows.Next() {
+		var ledgerEntry model.LedgerEntry
+		err := rows.Scan(&ledgerEntry.ID, &ledgerEntry.Amount, &ledgerEntry.Date, &ledgerEntry.Description, &ledgerEntry.Direction, &ledgerEntry.TransactionID, &ledgerEntry.WalletID, &ledgerEntry.WorkspaceID, &ledgerEntry.CreatedBy, &ledgerEntry.TransferGroupID)
+		if err != nil {
+			return nil, err
+		}
+		ledgerEntries = append(ledgerEntries, &ledgerEntry)
+	}
 
-	// return ledgers, nil
-
-	return nil // Placeholder return statement
+	return ledgerEntries, nil
 }
 
-func (r *ledgerRepository) Update() error {
-	// Implement the logic to update a ledger record in the database
-	// Example:
-	// _, err := r.db.Exec(ctx, "UPDATE ledger_table SET column1 = $1 WHERE id = $2", value1, id)
-	// return err
+func (r *ledgerRepository) Update(ctx context.Context, ledgerEntry *model.LedgerEntry) error {
+	query := `
+		UPDATE ledger_entries SET 
+			amount = $1,
+			date = $2,
+			description = $3,
+			direction = $4,
+			transaction_id = $5,
+			wallet_id = $6,
+			workspace_id = $7,
+			created_by = $8,
+			transfer_group_id = $9
+		WHERE id = $10
+	`
 
-	return nil // Placeholder return statement
+	_, err := r.db.Executor(ctx).Exec(ctx, query, ledgerEntry.Amount, ledgerEntry.Date, ledgerEntry.Description, ledgerEntry.Direction, ledgerEntry.TransactionID, ledgerEntry.WalletID, ledgerEntry.WorkspaceID, ledgerEntry.CreatedBy, ledgerEntry.TransferGroupID, ledgerEntry.ID)
+	
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
 
-func (r *ledgerRepository) Delete() error {
-	// Implement the logic to delete a ledger record from the database
-	// Example:
-	// _, err := r.db.Exec(ctx, "DELETE FROM ledger_table WHERE id = $1", id)
-	// return err
+func (r *ledgerRepository) Delete(ctx context.Context, id uuid.UUID) error {
+	query := `
+		UPDATE ledger_entries
+		SET deleted_at = NOW()
+		WHERE id = $1
+	`
 
-	return nil // Placeholder return statement
+	_, err := r.db.Executor(ctx).Exec(ctx, query, id)
+
+	if err != nil {
+		return err
+	}
+
+	return nil
 }

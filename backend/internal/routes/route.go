@@ -14,6 +14,7 @@ import (
 	"github.com/saurav-lal-karn/moniq/backend/internal/middleware"
 	contactRoute "github.com/saurav-lal-karn/moniq/backend/internal/modules/contact/route"
 	iamroute "github.com/saurav-lal-karn/moniq/backend/internal/modules/iam/route"
+	transactionRoute "github.com/saurav-lal-karn/moniq/backend/internal/modules/ledger/route"
 	tagRoute "github.com/saurav-lal-karn/moniq/backend/internal/modules/tag/route"
 	"github.com/saurav-lal-karn/moniq/backend/internal/modules/user"
 	walletRoute "github.com/saurav-lal-karn/moniq/backend/internal/modules/wallet/route"
@@ -29,7 +30,6 @@ func SetupRouter(cfg *config.Config, db *pgxpool.Pool, rdb *redis.Client) *gin.E
 	corsConfig := cors.DefaultConfig()
 	corsConfig.AllowOrigins = []string{cfg.ClientUrl}
 	corsConfig.AllowCredentials = true
-	// corsConfig.AllowAllOrigins = true
 	corsConfig.AllowMethods = []string{"GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"}
 	corsConfig.AllowHeaders = []string{"Authorization", "Content-Type", "X-Workspace-Id"}
 
@@ -81,10 +81,13 @@ func SetupRouter(cfg *config.Config, db *pgxpool.Pool, rdb *redis.Client) *gin.E
 	walletRoute.RegisterWalletRoutes(routeV1, txm)
 
 	// Register contact routes
-	contactRoute.RegisterContactRoutes(routeV1, db, txm)
+	contactRoute.RegisterContactRoutes(routeV1, txm)
 
 	// Register tag routes
 	tagRoute.RegisterTagRoutes(routeV1, txm)
+
+	// Register transaction routes
+	transactionRoute.RegisterTransactionRoutes(routeV1, txm)
 
 	return router
 }
