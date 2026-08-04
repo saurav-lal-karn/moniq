@@ -977,6 +977,47 @@ const docTemplate = `{
             }
         },
         "/transaction": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "List transactions",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Transaction"
+                ],
+                "summary": "List transactions",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Workspace ID",
+                        "name": "x-workspace-id",
+                        "in": "header",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/helper.Response"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/helper.Response"
+                        }
+                    }
+                }
+            },
             "post": {
                 "security": [
                     {
@@ -1829,7 +1870,8 @@ const docTemplate = `{
             ],
             "properties": {
                 "token": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "invitation-token"
                 }
             }
         },
@@ -1841,16 +1883,20 @@ const docTemplate = `{
             ],
             "properties": {
                 "address": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "123 Main Street"
                 },
                 "email": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "billing@acme.test"
                 },
                 "name": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "Acme Supplies"
                 },
                 "phone": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "+1-202-555-0142"
                 },
                 "type": {
                     "type": "string",
@@ -1860,7 +1906,8 @@ const docTemplate = `{
                         "client",
                         "vendor",
                         "other"
-                    ]
+                    ],
+                    "example": "vendor"
                 }
             }
         },
@@ -1871,7 +1918,8 @@ const docTemplate = `{
             ],
             "properties": {
                 "name": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "Utilities"
                 }
             }
         },
@@ -1886,25 +1934,40 @@ const docTemplate = `{
             ],
             "properties": {
                 "amount": {
-                    "type": "number"
+                    "type": "number",
+                    "example": 25
                 },
                 "contact_id": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "550e8400-e29b-41d4-a716-446655440002"
                 },
                 "date": {
-                    "$ref": "#/definitions/helper.Date"
+                    "type": "string",
+                    "example": "2026-01-20"
                 },
                 "description": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "Stationery for the office"
                 },
                 "destination_wallet_id": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "550e8400-e29b-41d4-a716-446655440001"
                 },
                 "items": {
                     "type": "array",
                     "items": {
                         "$ref": "#/definitions/dto.TransactionItemRequestDTO"
                     }
+                },
+                "tags": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    },
+                    "example": [
+                        "office",
+                        "supplies"
+                    ]
                 },
                 "type": {
                     "type": "string",
@@ -1915,10 +1978,12 @@ const docTemplate = `{
                         "transfer-out",
                         "investment",
                         "other"
-                    ]
+                    ],
+                    "example": "expense"
                 },
                 "wallet_id": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "550e8400-e29b-41d4-a716-446655440000"
                 }
             }
         },
@@ -1931,16 +1996,20 @@ const docTemplate = `{
             ],
             "properties": {
                 "currency": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "USD"
                 },
                 "description": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "Primary business wallet"
                 },
                 "name": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "Main Wallet"
                 },
                 "type_id": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "550e8400-e29b-41d4-a716-446655440000"
                 }
             }
         },
@@ -1951,10 +2020,12 @@ const docTemplate = `{
             ],
             "properties": {
                 "description": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "Cash on hand"
                 },
                 "name": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "Cash"
                 }
             }
         },
@@ -1971,10 +2042,12 @@ const docTemplate = `{
                         "owner",
                         "admin",
                         "member"
-                    ]
+                    ],
+                    "example": "member"
                 },
                 "user_id": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "550e8400-e29b-41d4-a716-446655440001"
                 }
             }
         },
@@ -1986,10 +2059,12 @@ const docTemplate = `{
             ],
             "properties": {
                 "description": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "Workspace for Acme's finances"
                 },
                 "name": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "Acme Inc."
                 },
                 "type": {
                     "enum": [
@@ -2001,7 +2076,8 @@ const docTemplate = `{
                         {
                             "$ref": "#/definitions/model.WorkspaceType"
                         }
-                    ]
+                    ],
+                    "example": "team"
                 }
             }
         },
@@ -2013,7 +2089,8 @@ const docTemplate = `{
             ],
             "properties": {
                 "email": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "member@example.test"
                 },
                 "role": {
                     "type": "string",
@@ -2021,7 +2098,8 @@ const docTemplate = `{
                         "owner",
                         "admin",
                         "member"
-                    ]
+                    ],
+                    "example": "member"
                 }
             }
         },
@@ -2033,10 +2111,12 @@ const docTemplate = `{
             ],
             "properties": {
                 "email": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "saurav@gmail.com"
                 },
                 "password": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "password"
                 }
             }
         },
@@ -2058,7 +2138,8 @@ const docTemplate = `{
             ],
             "properties": {
                 "refresh_token": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "refresh-token"
                 }
             }
         },
@@ -2069,7 +2150,8 @@ const docTemplate = `{
             ],
             "properties": {
                 "refresh_token": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "refresh-token"
                 }
             }
         },
@@ -2094,17 +2176,21 @@ const docTemplate = `{
             ],
             "properties": {
                 "email": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "jane@example.test"
                 },
                 "first_name": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "Jane"
                 },
                 "last_name": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "Doe"
                 },
                 "password": {
                     "type": "string",
-                    "minLength": 8
+                    "minLength": 8,
+                    "example": "password123"
                 }
             }
         },
@@ -2115,7 +2201,8 @@ const docTemplate = `{
             ],
             "properties": {
                 "id": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "550e8400-e29b-41d4-a716-446655440003"
                 }
             }
         },
@@ -2126,7 +2213,8 @@ const docTemplate = `{
             ],
             "properties": {
                 "id": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "550e8400-e29b-41d4-a716-446655440003"
                 }
             }
         },
@@ -2137,7 +2225,8 @@ const docTemplate = `{
             ],
             "properties": {
                 "id": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "550e8400-e29b-41d4-a716-446655440003"
                 }
             }
         },
@@ -2151,16 +2240,20 @@ const docTemplate = `{
             ],
             "properties": {
                 "name": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "Office supplies"
                 },
                 "price": {
-                    "type": "number"
+                    "type": "number",
+                    "example": 12.5
                 },
                 "quantity": {
-                    "type": "number"
+                    "type": "number",
+                    "example": 2
                 },
                 "total": {
-                    "type": "number"
+                    "type": "number",
+                    "example": 25
                 }
             }
         },
@@ -2172,16 +2265,20 @@ const docTemplate = `{
             ],
             "properties": {
                 "address": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "123 Main Street"
                 },
                 "email": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "billing@acme.test"
                 },
                 "name": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "Acme Supplies"
                 },
                 "phone": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "+1-202-555-0142"
                 },
                 "type": {
                     "type": "string",
@@ -2191,7 +2288,8 @@ const docTemplate = `{
                         "client",
                         "vendor",
                         "other"
-                    ]
+                    ],
+                    "example": "vendor"
                 }
             }
         },
@@ -2202,7 +2300,8 @@ const docTemplate = `{
             ],
             "properties": {
                 "name": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "Utilities"
                 }
             }
         },
@@ -2216,19 +2315,24 @@ const docTemplate = `{
             ],
             "properties": {
                 "currency": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "USD"
                 },
                 "description": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "Primary business wallet"
                 },
                 "id": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "550e8400-e29b-41d4-a716-446655440001"
                 },
                 "name": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "Main Wallet"
                 },
                 "type_id": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "550e8400-e29b-41d4-a716-446655440000"
                 }
             }
         },
@@ -2241,13 +2345,16 @@ const docTemplate = `{
             ],
             "properties": {
                 "description": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "Workspace for Acme's finances"
                 },
                 "id": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "550e8400-e29b-41d4-a716-446655440000"
                 },
                 "name": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "Acme Inc."
                 },
                 "type": {
                     "enum": [
@@ -2259,15 +2366,8 @@ const docTemplate = `{
                         {
                             "$ref": "#/definitions/model.WorkspaceType"
                         }
-                    ]
-                }
-            }
-        },
-        "helper.Date": {
-            "type": "object",
-            "properties": {
-                "time.Time": {
-                    "type": "string"
+                    ],
+                    "example": "team"
                 }
             }
         },

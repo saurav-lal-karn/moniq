@@ -26,22 +26,22 @@ export const FieldConfidenceIndicator: React.FC<
         if (score >= 0.8) {
             return {
                 label: "High Confidence",
-                color: "text-green-600 dark:text-green-400",
-                bgColor: "bg-green-50 dark:bg-green-900/20",
+                color: "text-emerald-600 dark:text-emerald-400",
+                bgColor: "bg-emerald-50 dark:bg-emerald-950/30",
                 icon: <CheckCircle2 className="h-3 w-3" />,
             };
         } else if (score >= 0.5) {
             return {
                 label: "Medium Confidence",
-                color: "text-yellow-600 dark:text-yellow-400",
-                bgColor: "bg-yellow-50 dark:bg-yellow-900/20",
+                color: "text-amber-600 dark:text-amber-400",
+                bgColor: "bg-amber-50 dark:bg-amber-950/30",
                 icon: <AlertTriangle className="h-3 w-3" />,
             };
         } else {
             return {
                 label: "Low Confidence - Please Verify",
-                color: "text-red-600 dark:text-red-400",
-                bgColor: "bg-red-50 dark:bg-red-900/20",
+                color: "text-rose-600 dark:text-rose-400",
+                bgColor: "bg-rose-50 dark:bg-rose-950/30",
                 icon: <AlertCircle className="h-3 w-3" />,
             };
         }
@@ -54,7 +54,7 @@ export const FieldConfidenceIndicator: React.FC<
         <div className="mt-1 flex items-center gap-2">
             <div
                 className={`flex items-center gap-1 rounded-full px-2 py-0.5 ${confidenceInfo.bgColor} ${confidenceInfo.color}`}
-                title={`AI is ${percentage}% confident in this value`}
+                title={`AI is ${percentage}% confident in ${fieldName}`}
             >
                 {confidenceInfo.icon}
                 {showLabel && (

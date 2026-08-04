@@ -5,7 +5,7 @@ import { apiFetch } from "@/lib/api";
 import { useRouter } from "next/navigation";
 import { Family } from "@/types";
 
-interface User {
+export interface User {
     id: string;
     first_name: string;
     last_name: string;
@@ -29,8 +29,8 @@ interface AuthContextType {
     loading: boolean;
     isAuthenticated: boolean;
     token: string | null;
-    login: (credentials: any, callbackUrl?: string) => Promise<void>;
-    signup: (userData: any, callbackUrl?: string) => Promise<void>;
+    login: (credentials: Record<string, unknown>, callbackUrl?: string) => Promise<void>;
+    signup: (userData: Record<string, unknown>, callbackUrl?: string) => Promise<void>;
     logout: () => Promise<void>;
     checkAuth: () => Promise<void>;
 }
@@ -48,7 +48,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             setLoading(true);
             const userData = await apiFetch<User>("/auth/me");
             setUser(userData);
-        } catch (error) {
+        } catch {
             setUser(null);
         } finally {
             setLoading(false);
@@ -61,7 +61,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         if (savedToken) setToken(savedToken);
     }, []);
 
-    const login = async (credentials: any, callbackUrl?: string) => {
+    const login = async (credentials: Record<string, unknown>, callbackUrl?: string) => {
         const data = await apiFetch<{ access_token: string }>("/auth/login", {
             method: "POST",
             body: JSON.stringify(credentials),
@@ -75,7 +75,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         router.push(callbackUrl || "/dashboard");
     };
 
-    const signup = async (userData: any, callbackUrl?: string) => {
+    const signup = async (userData: Record<string, unknown>, callbackUrl?: string) => {
         await apiFetch("/auth/register", {
             method: "POST",
             body: JSON.stringify(userData),

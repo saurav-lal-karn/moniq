@@ -3,6 +3,7 @@ definitions:
   dto.AcceptDeclineInvitationDTO:
     properties:
       token:
+        example: invitation-token
         type: string
     required:
     - token
@@ -10,12 +11,16 @@ definitions:
   dto.CreateContactRequestDTO:
     properties:
       address:
+        example: 123 Main Street
         type: string
       email:
+        example: billing@acme.test
         type: string
       name:
+        example: Acme Supplies
         type: string
       phone:
+        example: +1-202-555-0142
         type: string
       type:
         enum:
@@ -24,6 +29,7 @@ definitions:
         - client
         - vendor
         - other
+        example: vendor
         type: string
     required:
     - name
@@ -32,6 +38,7 @@ definitions:
   dto.CreateTagRequestDTO:
     properties:
       name:
+        example: Utilities
         type: string
     required:
     - name
@@ -39,18 +46,30 @@ definitions:
   dto.CreateTransactionRequestDTO:
     properties:
       amount:
+        example: 25
         type: number
       contact_id:
+        example: 550e8400-e29b-41d4-a716-446655440002
         type: string
       date:
-        $ref: '#/definitions/helper.Date'
+        example: "2026-01-20"
+        type: string
       description:
+        example: Stationery for the office
         type: string
       destination_wallet_id:
+        example: 550e8400-e29b-41d4-a716-446655440001
         type: string
       items:
         items:
           $ref: '#/definitions/dto.TransactionItemRequestDTO'
+        type: array
+      tags:
+        example:
+        - office
+        - supplies
+        items:
+          type: string
         type: array
       type:
         enum:
@@ -60,8 +79,10 @@ definitions:
         - transfer-out
         - investment
         - other
+        example: expense
         type: string
       wallet_id:
+        example: 550e8400-e29b-41d4-a716-446655440000
         type: string
     required:
     - amount
@@ -73,12 +94,16 @@ definitions:
   dto.CreateWalletRequestDTO:
     properties:
       currency:
+        example: USD
         type: string
       description:
+        example: Primary business wallet
         type: string
       name:
+        example: Main Wallet
         type: string
       type_id:
+        example: 550e8400-e29b-41d4-a716-446655440000
         type: string
     required:
     - currency
@@ -88,8 +113,10 @@ definitions:
   dto.CreateWalletTypeRequestDTO:
     properties:
       description:
+        example: Cash on hand
         type: string
       name:
+        example: Cash
         type: string
     required:
     - name
@@ -101,8 +128,10 @@ definitions:
         - owner
         - admin
         - member
+        example: member
         type: string
       user_id:
+        example: 550e8400-e29b-41d4-a716-446655440001
         type: string
     required:
     - role
@@ -111,8 +140,10 @@ definitions:
   dto.CreateWorkspaceRequestDTO:
     properties:
       description:
+        example: Workspace for Acme's finances
         type: string
       name:
+        example: Acme Inc.
         type: string
       type:
         allOf:
@@ -121,6 +152,7 @@ definitions:
         - personal
         - family
         - team
+        example: team
     required:
     - name
     - type
@@ -128,12 +160,14 @@ definitions:
   dto.InviteUserToWorkspaceDTO:
     properties:
       email:
+        example: member@example.test
         type: string
       role:
         enum:
         - owner
         - admin
         - member
+        example: member
         type: string
     required:
     - email
@@ -142,8 +176,10 @@ definitions:
   dto.LoginRequestDTO:
     properties:
       email:
+        example: saurav@gmail.com
         type: string
       password:
+        example: password
         type: string
     required:
     - email
@@ -159,6 +195,7 @@ definitions:
   dto.LogoutRequestDTO:
     properties:
       refresh_token:
+        example: refresh-token
         type: string
     required:
     - refresh_token
@@ -166,6 +203,7 @@ definitions:
   dto.RefreshRequestDTO:
     properties:
       refresh_token:
+        example: refresh-token
         type: string
     required:
     - refresh_token
@@ -180,12 +218,16 @@ definitions:
   dto.RegisterRequestDTO:
     properties:
       email:
+        example: jane@example.test
         type: string
       first_name:
+        example: Jane
         type: string
       last_name:
+        example: Doe
         type: string
       password:
+        example: password123
         minLength: 8
         type: string
     required:
@@ -197,6 +239,7 @@ definitions:
   dto.RemoveInvitationDTO:
     properties:
       id:
+        example: 550e8400-e29b-41d4-a716-446655440003
         type: string
     required:
     - id
@@ -204,6 +247,7 @@ definitions:
   dto.ResendInvitationDTO:
     properties:
       id:
+        example: 550e8400-e29b-41d4-a716-446655440003
         type: string
     required:
     - id
@@ -211,6 +255,7 @@ definitions:
   dto.RevokeInvitationDTO:
     properties:
       id:
+        example: 550e8400-e29b-41d4-a716-446655440003
         type: string
     required:
     - id
@@ -218,12 +263,16 @@ definitions:
   dto.TransactionItemRequestDTO:
     properties:
       name:
+        example: Office supplies
         type: string
       price:
+        example: 12.5
         type: number
       quantity:
+        example: 2
         type: number
       total:
+        example: 25
         type: number
     required:
     - name
@@ -234,12 +283,16 @@ definitions:
   dto.UpdateContactRequestDTO:
     properties:
       address:
+        example: 123 Main Street
         type: string
       email:
+        example: billing@acme.test
         type: string
       name:
+        example: Acme Supplies
         type: string
       phone:
+        example: +1-202-555-0142
         type: string
       type:
         enum:
@@ -248,6 +301,7 @@ definitions:
         - client
         - vendor
         - other
+        example: vendor
         type: string
     required:
     - name
@@ -256,6 +310,7 @@ definitions:
   dto.UpdateTagRequestDTO:
     properties:
       name:
+        example: Utilities
         type: string
     required:
     - name
@@ -263,14 +318,19 @@ definitions:
   dto.UpdateWalletRequestDTO:
     properties:
       currency:
+        example: USD
         type: string
       description:
+        example: Primary business wallet
         type: string
       id:
+        example: 550e8400-e29b-41d4-a716-446655440001
         type: string
       name:
+        example: Main Wallet
         type: string
       type_id:
+        example: 550e8400-e29b-41d4-a716-446655440000
         type: string
     required:
     - currency
@@ -281,10 +341,13 @@ definitions:
   dto.UpdateWorkspaceRequestDTO:
     properties:
       description:
+        example: Workspace for Acme's finances
         type: string
       id:
+        example: 550e8400-e29b-41d4-a716-446655440000
         type: string
       name:
+        example: Acme Inc.
         type: string
       type:
         allOf:
@@ -293,15 +356,11 @@ definitions:
         - personal
         - family
         - team
+        example: team
     required:
     - id
     - name
     - type
-    type: object
-  helper.Date:
-    properties:
-      time.Time:
-        type: string
     type: object
   helper.Response:
     properties:
@@ -945,6 +1004,32 @@ paths:
       tags:
       - Tag
   /transaction:
+    get:
+      consumes:
+      - application/json
+      description: List transactions
+      parameters:
+      - description: Workspace ID
+        in: header
+        name: x-workspace-id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/helper.Response'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/helper.Response'
+      security:
+      - BearerAuth: []
+      summary: List transactions
+      tags:
+      - Transaction
     post:
       consumes:
       - application/json

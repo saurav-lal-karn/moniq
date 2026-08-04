@@ -12,7 +12,7 @@ import { toast } from "react-hot-toast";
 
 interface SocketContextType {
     isConnected: boolean;
-    lastMessage: any;
+    lastMessage: unknown;
 }
 
 const SocketContext = createContext<SocketContextType | undefined>(undefined);
@@ -29,7 +29,7 @@ export const SocketProvider = ({ children }: { children: ReactNode }) => {
     const { user, token: authContextToken } = useAuth();
     const [socket, setSocket] = useState<WebSocket | null>(null);
     const [isConnected, setIsConnected] = useState(false);
-    const [lastMessage, setLastMessage] = useState<any>(null);
+    const [lastMessage, setLastMessage] = useState<unknown>(null);
 
     useEffect(() => {
         // Only connect if user is logged in

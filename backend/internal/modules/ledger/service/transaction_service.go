@@ -11,6 +11,8 @@ import (
 	"github.com/saurav-lal-karn/moniq/backend/internal/modules/ledger/dto"
 	"github.com/saurav-lal-karn/moniq/backend/internal/modules/ledger/model"
 	"github.com/saurav-lal-karn/moniq/backend/internal/modules/ledger/repository"
+	tagModel "github.com/saurav-lal-karn/moniq/backend/internal/modules/tag/model"
+	tagRepository "github.com/saurav-lal-karn/moniq/backend/internal/modules/tag/repository"
 	walletRepository "github.com/saurav-lal-karn/moniq/backend/internal/modules/wallet/repository"
 )
 
@@ -22,6 +24,8 @@ type transactionService struct {
 	ledgerRepo repository.LedgerRepository
 	contactRepo contactRepository.ContactRepository
 	walletRepo walletRepository.WalletRepository
+	tagRepo tagRepository.TagRepository
+	txTagRepo tagRepository.TransactionTagRepository
 }
 
 type TransactionService interface {
@@ -32,7 +36,7 @@ type TransactionService interface {
 	Delete(ctx context.Context, id uuid.UUID) error
 }
 
-func NewTransactionService(txm *database.TxManager, transactionRepo repository.TransactionRepository, transactionItemRepo repository.TransactionItemRepository, ledgerRepo repository.LedgerRepository, contactRepo contactRepository.ContactRepository, walletRepo walletRepository.WalletRepository) TransactionService {
+func NewTransactionService(txm *database.TxManager, transactionRepo repository.TransactionRepository, transactionItemRepo repository.TransactionItemRepository, ledgerRepo repository.LedgerRepository, contactRepo contactRepository.ContactRepository, walletRepo walletRepository.WalletRepository, tagRepository tagRepository.TagRepository, txTagRepo tagRepository.TransactionTagRepository) TransactionService {
 	return &transactionService{
 		txm: txm,
 		transactionRepo: transactionRepo,
@@ -40,6 +44,8 @@ func NewTransactionService(txm *database.TxManager, transactionRepo repository.T
 		ledgerRepo: ledgerRepo,
 		contactRepo: contactRepo,
 		walletRepo: walletRepo,
+		tagRepo: tagRepository,
+		txTagRepo: txTagRepo,
 	}
 }
 
@@ -82,6 +88,39 @@ func (s *transactionService) CreateTransaction(ctx context.Context, tx *dto.Crea
 			return err
 		}
 
+		// Check for the tags, if they exist in workspace add them, if not create a new tag and add them to transaction_tags
+		if len(tx.Tags) > 0 {
+			for _, tagName := range tx.Tags {
+				tagID := uuid.New()
+				tagDetails, err := s.tagRepo.GetByName(ctx, tagName, tx.WorkspaceID)
+				if err != nil {
+					if err == helper.ErrTagNotFound {
+						tag := tagModel.Tag{
+							BaseModel: baseModel.BaseModel{ID: tagID},
+							Name: tagName,
+							WorkspaceID: &tx.WorkspaceID,
+							CreatedBy: &tx.CreatedBy,
+						}
+						
+						if err := s.tagRepo.Create(ctx, &tag); err != nil {
+							return err
+						}
+					} else {
+						return err
+					}
+				} else {
+					tagID = tagDetails.ID
+				}
+
+				transactionTag := tagModel.TransactionTag{
+					TransactionID: transaction.ID,
+					TagID: tagID,
+				}
+				if err := s.txTagRepo.Create(ctx, &transactionTag); err != nil {
+					return err
+				}
+			}
+		}
 		
 		if tx.Type == string(model.TransferIn) || tx.Type == string(model.TransferOut) {
 			destinationWalletExists, err := s.walletRepo.CheckIfExists(ctx, *tx.DestinationWalletID)

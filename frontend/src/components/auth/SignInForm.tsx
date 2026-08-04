@@ -29,11 +29,9 @@ export default function SignInForm() {
 
         try {
             await login({ email, password }, callbackUrl || undefined);
-        } catch (err: any) {
-            setError(
-                err.message ||
-                "Failed to sign in. Please check your credentials."
-            );
+        } catch (err: unknown) {
+            const msg = err instanceof Error ? err.message : "Failed to sign in. Please check your credentials.";
+            setError(msg);
         } finally {
             setIsSubmitting(false);
         }

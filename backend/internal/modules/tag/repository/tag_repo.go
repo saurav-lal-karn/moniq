@@ -4,7 +4,9 @@ import (
 	"context"
 
 	"github.com/google/uuid"
+	"github.com/jackc/pgx/v5"
 	"github.com/saurav-lal-karn/moniq/backend/internal/database"
+	"github.com/saurav-lal-karn/moniq/backend/internal/helper"
 	"github.com/saurav-lal-karn/moniq/backend/internal/modules/tag/model"
 )
 
@@ -18,6 +20,7 @@ type TagRepository interface {
 	List(ctx context.Context, workspaceID *uuid.UUID) ([]*model.Tag, error)
 	Update(ctx context.Context, tag *model.Tag) error
 	Delete(ctx context.Context, id uuid.UUID) error
+	GetByName(ctx context.Context, tagName string, workspaceID uuid.UUID) (*model.Tag, error)
 }
 
 func NewTagRepository(db database.DB) TagRepository {
@@ -47,6 +50,23 @@ func (r *tagRepository) GetByID(ctx context.Context, id uuid.UUID) (*model.Tag, 
 	}
 	return &tag, nil
 }
+
+func (r *tagRepository) GetByName(ctx context.Context, tagName string, workspaceID uuid.UUID) (*model.Tag, error) {
+	var tag model.Tag
+	query := `
+		SELECT id, name, workspace_id, created_by
+		FROM tags WHERE name = $1 AND (workspace_id = $2 OR workspace_id IS NULL) AND deleted_at IS NULL
+	`
+	err := r.db.Executor(ctx).QueryRow(ctx, query, tagName, workspaceID).Scan(&tag.ID, &tag.Name, &tag.WorkspaceID, &tag.CreatedBy)
+	if err != nil {
+		if err == pgx.ErrNoRows {
+			return nil, helper.ErrTagNotFound
+		}
+		return nil, err
+	}
+	return &tag, nil
+}
+
 
 func (r *tagRepository) List(ctx context.Context, workspaceID *uuid.UUID) ([]*model.Tag, error) {
 	query := `
@@ -88,3 +108,6 @@ func (r *tagRepository) Delete(ctx context.Context, id uuid.UUID) error {
 	_, err := r.db.Executor(ctx).Exec(ctx, query, id)
 	return err
 }
+
+
+

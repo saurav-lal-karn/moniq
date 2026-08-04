@@ -1,11 +1,10 @@
 import { Metadata } from "next";
-import { Inter, Inter_Tight } from "next/font/google";
+import { Inter, Plus_Jakarta_Sans } from "next/font/google";
 import "./globals.css";
 
 import { SidebarProvider } from "@/context/SidebarContext";
 import { ThemeProvider } from "@/context/ThemeContext";
 import { AuthProvider } from "@/context/AuthContext";
-import { SocketProvider } from "@/context/SocketContext";
 
 import { Toaster } from "react-hot-toast";
 import QueryProvider from "@/components/providers/QueryProvider";
@@ -13,20 +12,21 @@ import { WorkspaceProvider } from "@/context/WorkspaceContext";
 
 const inter = Inter({
     subsets: ["latin"],
+    variable: "--font-inter",
 });
 
-const interTight = Inter_Tight({
+const plusJakarta = Plus_Jakarta_Sans({
     subsets: ["latin"],
-    variable: "--font-inter-tight",
+    variable: "--font-jakarta",
 });
 
 export const metadata: Metadata = {
     title: {
-        default: "Moniq | Personal Expense Tracker",
+        default: "Moniq | Financial Intelligence for Personal & Teams",
         template: "%s | Moniq",
     },
     description:
-        "Monitor your family ledgers, track expenses, and manage your budget with Moniq.",
+        "Unified financial platform to track wallets, monitor budgets, scan receipts, and manage family & team ledgers with complete clarity.",
 };
 
 export default function RootLayout({
@@ -36,13 +36,12 @@ export default function RootLayout({
 }>) {
     return (
         <html lang="en">
-            <body className={`${inter.className} ${interTight.variable} dark:bg-background`}>
+            <body className={`${inter.variable} ${plusJakarta.variable} font-sans bg-background text-foreground antialiased selection:bg-primary/20 selection:text-primary`}>
                 <AuthProvider>
                     <WorkspaceProvider>
                         <QueryProvider>
                             <ThemeProvider>
                                 <SidebarProvider>
-                                    {/* <SocketProvider>{children}</SocketProvider> */}
                                     <Toaster
                                         position="top-right"
                                         containerStyle={{

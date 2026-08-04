@@ -5,14 +5,10 @@ import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { useSidebar } from "../context/SidebarContext";
 import {
-    BoxCubeIcon,
     ChevronDownIcon,
     DollarLineIcon,
     GridIcon,
     HorizontaLDots,
-    ListIcon,
-    PieChartIcon,
-    TableIcon,
 } from "../icons/index";
 import { Settings } from "lucide-react";
 

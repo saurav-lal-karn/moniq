@@ -44,7 +44,7 @@ export const UploadDialog: React.FC<UploadDialogProps> = ({
     const [analysisResult, setAnalysisResult] =
         useState<AnalysisResponse | null>(null);
     const [showConfirmation, setShowConfirmation] = useState(false);
-    const [confirmedType, setConfirmedType] = useState<string>("");
+    const [confirmedType, setConfirmedType] = useState<"INCOME" | "EXPENSE" | "TRANSFER">("EXPENSE");
     const fileInputRef = useRef<HTMLInputElement>(null);
     const { user } = useAuth();
 
@@ -109,7 +109,7 @@ export const UploadDialog: React.FC<UploadDialogProps> = ({
         setAnalysisResult(null);
         setIsUploading(false);
         setShowConfirmation(false);
-        setConfirmedType("");
+        setConfirmedType("EXPENSE");
     };
 
     const handleClose = () => {

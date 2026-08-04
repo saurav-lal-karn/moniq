@@ -83,7 +83,7 @@ export default function LandingPageClient() {
                     </div>
 
                     <h1 className="mb-8 text-5xl leading-[1.1] font-black tracking-tight md:text-7xl lg:text-8xl">
-                        Your Family's{" "}
+                        Your Family&apos;s{" "}
                         <span className="text-primary italic">
                             Trusted
                         </span>{" "}

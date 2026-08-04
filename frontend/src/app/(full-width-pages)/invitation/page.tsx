@@ -1,3 +1,4 @@
+import { Suspense } from "react";
 import { Metadata } from "next";
 import InvitationView from "@/components/invitation/InvitationView";
 
@@ -7,5 +8,9 @@ export const metadata: Metadata = {
 };
 
 export default function InvitationPage() {
-    return <InvitationView />;
+    return (
+        <Suspense fallback={<div className="flex min-h-screen items-center justify-center bg-background text-foreground-muted">Loading invitation...</div>}>
+            <InvitationView />
+        </Suspense>
+    );
 }

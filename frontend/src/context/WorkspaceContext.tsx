@@ -1,6 +1,6 @@
 "use client";
 
-import React, { createContext, useContext, useEffect, useState } from "react";
+import React, { createContext, useContext, useEffect, useState, useCallback } from "react";
 import { Workspace } from "@/types";
 import { workspaceService } from "@/services/workspaceService";
 import { useAuth } from "./AuthContext";
@@ -21,7 +21,7 @@ export function WorkspaceProvider({ children }: { children: React.ReactNode }) {
     const [activeWorkspace, setActiveWorkspaceState] = useState<Workspace | null>(null);
     const [loading, setLoading] = useState(false);
 
-    const refreshWorkspaces = async () => {
+    const refreshWorkspaces = useCallback(async () => {
         if (!isAuthenticated) {
             setWorkspaces([]);
             setActiveWorkspaceState(null);
@@ -52,11 +52,11 @@ export function WorkspaceProvider({ children }: { children: React.ReactNode }) {
         } finally {
             setLoading(false);
         }
-    };
+    }, [isAuthenticated]);
 
     useEffect(() => {
         refreshWorkspaces();
-    }, [isAuthenticated]);
+    }, [refreshWorkspaces]);
 
     const setActiveWorkspace = (workspace: Workspace) => {
         setActiveWorkspaceState(workspace);

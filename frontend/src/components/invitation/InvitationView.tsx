@@ -63,7 +63,7 @@ export default function InvitationView() {
                     setStatus("error");
                     setMessage(result.message || "Failed to load invitation details.");
                 }
-            } catch (err) {
+            } catch {
                 setStatus("error");
                 setMessage("Network error. Please try again later.");
             }
@@ -95,7 +95,7 @@ export default function InvitationView() {
                 }
             }
         },
-        [token]
+        [token, router]
     );
 
     return (

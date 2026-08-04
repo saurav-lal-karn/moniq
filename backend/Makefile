@@ -33,7 +33,7 @@ tidy:
 	go mod tidy
 
 # Development mode with air (hot reload)
-dev: swagger
+dev-api: swagger
 	air
 
 # Create a new migration

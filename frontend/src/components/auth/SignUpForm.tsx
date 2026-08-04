@@ -37,10 +37,9 @@ export default function SignUpForm() {
 
         try {
             await signup({ first_name: firstName, last_name: lastName, email, password }, callbackUrl || undefined);
-        } catch (err: any) {
-            setError(
-                err.message || "Failed to create account. Please try again."
-            );
+        } catch (err: unknown) {
+            const msg = err instanceof Error ? err.message : "Failed to create account. Please try again.";
+            setError(msg);
         } finally {
             setIsSubmitting(false);
         }

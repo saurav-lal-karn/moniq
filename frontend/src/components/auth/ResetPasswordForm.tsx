@@ -6,7 +6,6 @@ import Button from "@/components/ui/button/Button";
 import { ChevronLeftIcon } from "@/icons";
 import Link from "next/link";
 import React, { useState } from "react";
-import Image from "next/image";
 
 export default function ResetPasswordForm() {
     const [email, setEmail] = useState("");
@@ -42,7 +41,7 @@ export default function ResetPasswordForm() {
                                     </span>
                                 </h1>
                                 <p className="text-sm text-muted">
-                                    Enter your email address and we'll send you
+                                    Enter your email address and we&apos;ll send you
                                     a link to reset your password.
                                 </p>
                             </div>
@@ -59,24 +58,22 @@ export default function ResetPasswordForm() {
                                         onChange={(e) =>
                                             setEmail(e.target.value)
                                         }
-                                        className="w-full rounded-xl border-border bg-surface-secondary text-foreground transition-all placeholder:text-muted focus:border-primary"
+                                        className="h-12 border-border bg-surface-secondary px-4 text-foreground placeholder:text-muted focus:border-primary focus:ring-primary/20"
                                         required
                                     />
                                 </div>
 
-                                <div>
-                                    <Button
-                                        type="submit"
-                                        className="w-full rounded-xl bg-primary py-4 text-lg font-black text-white shadow-theme-md transition-all hover:bg-primary-hover"
-                                    >
-                                        Send Reset Link
-                                    </Button>
-                                </div>
+                                <Button
+                                    type="submit"
+                                    className="w-full h-12 rounded-xl bg-primary text-white font-bold text-base shadow-theme-md transition-all hover:bg-primary-hover active:scale-98 cursor-pointer"
+                                >
+                                    Send Reset Link
+                                </Button>
                             </form>
                         </>
                     ) : (
-                        <div className="py-10 text-center">
-                            <div className="mx-auto mb-6 flex h-20 w-20 items-center justify-center rounded-full bg-primary-soft">
+                        <div className="text-center">
+                            <div className="mx-auto mb-6 flex h-20 w-20 items-center justify-center rounded-3xl bg-primary-soft">
                                 <svg
                                     className="h-10 w-10 text-primary"
                                     fill="none"
@@ -95,7 +92,7 @@ export default function ResetPasswordForm() {
                                 Check your email
                             </h2>
                             <p className="mb-8 text-muted">
-                                We've sent a password reset link to <br />
+                                We&apos;ve sent a password reset link to <br />
                                 <span className="font-bold text-foreground">
                                     {email}
                                 </span>
@@ -104,7 +101,7 @@ export default function ResetPasswordForm() {
                                 onClick={() => setIsSent(false)}
                                 className="font-bold text-primary transition-colors hover:text-primary-hover"
                             >
-                                Didn't receive it? Try again
+                                Didn&apos;t receive it? Try again
                             </button>
                         </div>
                     )}

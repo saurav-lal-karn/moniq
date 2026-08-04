@@ -1,12 +1,12 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
+import Image from "next/image";
 import { Table, TableBody, TableCell, TableHeader, TableRow } from "@/components/ui/table";
 import { workspaceService } from "@/services/workspaceService";
 import { useWorkspace } from "@/context/WorkspaceContext";
 import { WorkspaceMemberResponse } from "@/types";
-import { Skeleton, SkeletonTable } from "@/components/ui/skeleton";
-// import { Badge } from "@/components/ui/badge"; // Let's check if badge exists later, or just use standard div. Let's just use standard div with classes for now.
+import { SkeletonTable } from "@/components/ui/skeleton";
 
 export default function MembersList() {
     const { activeWorkspace } = useWorkspace();
@@ -30,23 +30,23 @@ export default function MembersList() {
     }, [activeWorkspace?.id]);
 
     return (
-        <div className="rounded-xl border border-gray-200 bg-white shadow-sm dark:border-gray-800 dark:bg-gray-900/50">
+        <div className="rounded-xl border border-border bg-surface shadow-theme-xs">
             <div className="p-6">
-                <h3 className="text-lg font-medium text-gray-900 dark:text-white">Workspace Members</h3>
-                <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">People who have access to this workspace.</p>
+                <h3 className="text-lg font-bold text-foreground">Workspace Members</h3>
+                <p className="mt-1 text-sm text-foreground-muted">People who have access to this workspace.</p>
             </div>
 
             <div className="overflow-x-auto">
                 {
                     loading ? <SkeletonTable rows={4} columns={4} /> :
                         (
-                            <Table className="w-full text-left text-sm text-gray-500 dark:text-gray-400">
-                                <TableHeader className="bg-gray-50 text-xs uppercase text-gray-700 dark:bg-gray-800 dark:text-gray-400">
+                            <Table className="w-full text-left text-sm text-foreground-muted">
+                                <TableHeader className="bg-surface-secondary text-xs uppercase text-foreground-muted">
                                     <TableRow>
-                                        <TableCell isHeader className="px-6 py-3">User</TableCell>
-                                        <TableCell isHeader className="px-6 py-3">Email</TableCell>
-                                        <TableCell isHeader className="px-6 py-3">Role</TableCell>
-                                        <TableCell isHeader className="px-6 py-3">Joined</TableCell>
+                                        <TableCell isHeader className="px-6 py-3 font-semibold">User</TableCell>
+                                        <TableCell isHeader className="px-6 py-3 font-semibold">Email</TableCell>
+                                        <TableCell isHeader className="px-6 py-3 font-semibold">Role</TableCell>
+                                        <TableCell isHeader className="px-6 py-3 font-semibold">Joined</TableCell>
                                     </TableRow>
                                 </TableHeader>
 
@@ -57,13 +57,13 @@ export default function MembersList() {
                                         </TableRow>
                                     ) : (
                                         members.map((member) => (
-                                            <TableRow key={member.id} className="border-b bg-white hover:bg-gray-50 dark:border-gray-700 dark:bg-gray-900/50 dark:hover:bg-gray-800/50">
-                                                <TableCell className="px-6 py-4 font-medium text-gray-900 dark:text-white">
+                                            <TableRow key={member.id} className="border-b border-border bg-surface hover:bg-surface-secondary/50">
+                                                <TableCell className="px-6 py-4 font-medium text-foreground">
                                                     <div className="flex items-center gap-3">
                                                         {member.user?.profile_picture_url ? (
-                                                            <img src={member.user.profile_picture_url} alt="Profile" className="h-8 w-8 rounded-full" />
+                                                            <Image src={member.user.profile_picture_url} alt="Profile" width={32} height={32} className="h-8 w-8 rounded-full object-cover" unoptimized />
                                                         ) : (
-                                                            <div className="flex h-8 w-8 items-center justify-center rounded-full bg-blue-100 text-blue-600 dark:bg-blue-900 dark:text-blue-300">
+                                                            <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary-soft text-primary font-bold text-xs">
                                                                 {member.user?.first_name?.charAt(0) || "U"}
                                                             </div>
                                                         )}

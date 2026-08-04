@@ -7,6 +7,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/saurav-lal-karn/moniq/backend/internal/helper"
 	"github.com/saurav-lal-karn/moniq/backend/internal/modules/ledger/dto"
+	"github.com/saurav-lal-karn/moniq/backend/internal/modules/ledger/mapper"
 	"github.com/saurav-lal-karn/moniq/backend/internal/modules/ledger/service"
 )
 
@@ -75,4 +76,39 @@ func(h *transactionHandler) CreateTransaction(ctx *gin.Context) {
 	}
 	
 	helper.SuccessResponse(ctx, http.StatusOK, "Transaction created successfully", nil)	
+}
+
+// List Transactions godoc
+// 
+// @Summary List transactions
+// @Description List transactions
+// @Tags Transaction
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param x-workspace-id header string true "Workspace ID"
+// @Success 200 {object} helper.Response
+// @Failure 400 {object} helper.Response
+// @Router /transaction [get]
+func (h *transactionHandler) ListTransactions(ctx *gin.Context) {
+	workspaceId := ctx.GetHeader("X-Workspace-Id")
+	if workspaceId == ""{
+		helper.ErrorResponse(ctx, http.StatusBadRequest, "Workspace Id not found in header. Please try again.")
+		return
+	}
+
+	workspaceID, err := uuid.Parse(workspaceId)
+	if err != nil {
+		helper.ErrorResponse(ctx, http.StatusBadRequest, "Malformed workspace ID in request. Please check again")
+		return
+	}
+
+	list, err := h.service.List(ctx, workspaceID)
+	if err != nil {
+		helper.ErrorResponse(ctx, http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	response := mapper.ToTransactionListResponse(list)
+	helper.SuccessResponse(ctx, http.StatusOK, "Transactions retrieved successfully", response)
 }
