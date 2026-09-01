@@ -30,7 +30,7 @@ type transactionService struct {
 
 type TransactionService interface {
 	CreateTransaction(ctx context.Context, tx *dto.CreateTransactionRequestDTO) error
-	List(ctx context.Context, workspaceID uuid.UUID) ([]*model.Transaction, error)
+	List(ctx context.Context, workspaceID uuid.UUID, req *helper.PaginationRequest) ([]*model.TransactionDetails, int, error)
 	GetByID(ctx context.Context, id uuid.UUID) (*model.Transaction, error)
 	Update(ctx context.Context, tx *model.Transaction) error
 	Delete(ctx context.Context, id uuid.UUID) error
@@ -277,8 +277,8 @@ func (s *transactionService) CreateTransaction(ctx context.Context, tx *dto.Crea
 	return err
 }
 
-func (s *transactionService) List(ctx context.Context, workspaceID uuid.UUID) ([]*model.Transaction, error) {
-	return s.transactionRepo.List(ctx, workspaceID)
+func (s *transactionService) List(ctx context.Context, workspaceID uuid.UUID, req *helper.PaginationRequest) ([]*model.TransactionDetails, int, error) {
+	return s.transactionRepo.List(ctx, workspaceID, req)
 }
 
 func (s *transactionService) GetByID(ctx context.Context, id uuid.UUID) (*model.Transaction, error) {

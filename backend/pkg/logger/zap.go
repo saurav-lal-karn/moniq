@@ -1,6 +1,8 @@
 package logger
 
 import (
+	"strings"
+
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 )
@@ -48,4 +50,8 @@ func StringField(key, value string) zap.Field {
 
 func Int64Field(key string, value int64) zap.Field {
 	return zap.Int64(key, value)
+}
+
+func SanitizeString(value string) string {
+	return strings.ReplaceAll(value, "`", "")
 }

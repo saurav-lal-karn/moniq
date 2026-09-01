@@ -10,7 +10,7 @@ import {
     GridIcon,
     HorizontaLDots,
 } from "../icons/index";
-import { Settings } from "lucide-react";
+import { Settings, Receipt as ReceiptIcon } from "lucide-react";
 
 
 type NavItem = {
@@ -38,6 +38,11 @@ const navigation: NavSection[] = [
                 icon: <DollarLineIcon />,
                 name: "Wallets",
                 path: "/wallet",
+            },
+            {
+                icon: <ReceiptIcon />,
+                name: "Transactions",
+                path: "/transaction",
             },
         ],
     },

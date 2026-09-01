@@ -34,3 +34,20 @@ func (d *Date) UnmarshalText(text []byte) error {
 	d.Time = t
 	return nil
 }
+
+type PaginationRequest struct {
+	Page int `form:"page"`
+	Limit int `form:"limit"`
+	Offset int `form:"offset"`
+	Search string `form:"search"`
+	Sort string `form:"sort"`
+	Order string `form:"order"`
+	Filters map[string]string `form:"filters"`
+}
+
+type PaginationResponse struct {
+	Page int `json:"page"`
+	Limit int `json:"limit"`
+	Total int `json:"total"`
+	TotalPages int `json:"total_pages"`
+}

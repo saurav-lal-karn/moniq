@@ -52,6 +52,21 @@ type TransactionItemResponseDTO struct {
 	TransactionID string  `json:"-"`
 }
 
+type TransactionWalletResponseDTO struct {
+	ID   string `json:"id" example:"550e8400-e29b-41d4-a716-446655440000"`
+	Name string `json:"name" example:"Cash"`
+}
+
+type TransactionContactResponseDTO struct {
+	ID   string `json:"id" example:"550e8400-e29b-41d4-a716-446655440002"`
+	Name string `json:"name" example:"John Doe"`
+}
+
+type TransactionTagResponseDTO struct {
+	ID   string `json:"id" example:"550e8400-e29b-41d4-a716-446655440000"`
+	Name string `json:"name" example:"Office"`
+}
+
 type TransactionResponseDTO struct {
 	ID                  string                       `json:"id" example:"550e8400-e29b-41d4-a716-446655440003"`
 	Amount              float64                      `json:"amount" example:"25.00"`
@@ -63,6 +78,8 @@ type TransactionResponseDTO struct {
 	ContactID           *uuid.UUID                   `json:"contact_id" example:"550e8400-e29b-41d4-a716-446655440002"`
 	WorkspaceID         uuid.UUID                    `json:"-"`
 	CreatedBy           uuid.UUID                    `json:"-"`
+	Wallet              TransactionWalletResponseDTO   `json:"wallet"`
+	Contact             TransactionContactResponseDTO  `json:"contact"`
 	Items               []TransactionItemResponseDTO `json:"items"`
-	Tags                []string                     `json:"tags" example:"office,supplies"`
+	Tags                []TransactionTagResponseDTO  `json:"tags" example:"office,supplies"`
 }

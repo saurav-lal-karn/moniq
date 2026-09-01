@@ -1014,6 +1014,39 @@ paths:
         name: x-workspace-id
         required: true
         type: string
+      - default: 1
+        description: Page number
+        in: query
+        minimum: 1
+        name: page
+        type: integer
+      - default: 20
+        description: Number of transactions per page
+        in: query
+        maximum: 100
+        minimum: 1
+        name: limit
+        type: integer
+      - description: Search query
+        example: '"transaction"'
+        in: query
+        name: search
+        type: string
+      - default: '"createdAt"'
+        description: Sort by
+        in: query
+        name: sort
+        type: string
+      - default: '"desc"'
+        description: Order
+        in: query
+        name: order
+        type: string
+      - description: Filters
+        example: '"type:expense"'
+        in: query
+        name: filters
+        type: string
       produces:
       - application/json
       responses:
@@ -1023,6 +1056,10 @@ paths:
             $ref: '#/definitions/helper.Response'
         "400":
           description: Bad Request
+          schema:
+            $ref: '#/definitions/helper.Response'
+        "500":
+          description: Internal Server Error
           schema:
             $ref: '#/definitions/helper.Response'
       security:

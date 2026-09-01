@@ -87,10 +87,25 @@ func(h *transactionHandler) CreateTransaction(ctx *gin.Context) {
 // @Produce json
 // @Security BearerAuth
 // @Param x-workspace-id header string true "Workspace ID"
+// @Param page query int false "Page number" default(1) minimum(1)
+// @Param limit query int false "Number of transactions per page" default(20) minimum(1) maximum(100)
+// @Param search query string false "Search query" example("transaction")
+// @Param sort query string false "Sort by" default("createdAt")
+// @Param order query string false "Order" default("desc")
+// @Param filters query string false "Filters" example("type:expense")
 // @Success 200 {object} helper.Response
 // @Failure 400 {object} helper.Response
+// @Failure 500 {object} helper.Response
 // @Router /transaction [get]
 func (h *transactionHandler) ListTransactions(ctx *gin.Context) {
+	var req *helper.PaginationRequest
+	if err := ctx.ShouldBindQuery(&req); err != nil {
+		helper.ErrorResponse(ctx, http.StatusBadRequest, helper.FormatValidationError(err))
+		return
+	}
+
+	req = helper.NormalizePaginationRequest(req)
+
 	workspaceId := ctx.GetHeader("X-Workspace-Id")
 	if workspaceId == ""{
 		helper.ErrorResponse(ctx, http.StatusBadRequest, "Workspace Id not found in header. Please try again.")
@@ -103,12 +118,12 @@ func (h *transactionHandler) ListTransactions(ctx *gin.Context) {
 		return
 	}
 
-	list, err := h.service.List(ctx, workspaceID)
+	list, totalCount, err := h.service.List(ctx, workspaceID, req)
 	if err != nil {
 		helper.ErrorResponse(ctx, http.StatusInternalServerError, err.Error())
 		return
 	}
 
-	response := mapper.ToTransactionListResponse(list)
-	helper.SuccessResponse(ctx, http.StatusOK, "Transactions retrieved successfully", response)
+	response := mapper.ToTransactonDetailsListResponse(list)
+	helper.PaginatedSuccessResponse(ctx, http.StatusOK, "Transactions retrieved successfully", response, req.Page, req.Limit, totalCount)
 }
