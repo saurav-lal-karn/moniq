@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useEffect, useCallback } from "react";
+import Link from "next/link";
 import {
     transactionService,
     contactService,
@@ -10,6 +11,8 @@ import {
 import { walletService, Wallet } from "@/services/walletService";
 import { CreateTransactionModal } from "@/components/transaction/CreateTransactionModal";
 import { CreateContactModal } from "@/components/transaction/CreateContactModal";
+import { EditTransactionModal } from "@/components/transaction/EditTransactionModal";
+import { DeleteTransactionDialog } from "@/components/transaction/DeleteTransactionDialog";
 import Pagination from "@/components/tables/Pagination";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useWorkspace } from "@/context/WorkspaceContext";
@@ -60,6 +63,8 @@ export default function TransactionsPage() {
     // Modal open states
     const [isTxModalOpen, setIsTxModalOpen] = useState(false);
     const [isContactModalOpen, setIsContactModalOpen] = useState(false);
+    const [selectedTxForEdit, setSelectedTxForEdit] = useState<TransactionResponse | null>(null);
+    const [selectedTxForDelete, setSelectedTxForDelete] = useState<TransactionResponse | null>(null);
 
     // Expand state for itemized transaction details
     const [expandedTxId, setExpandedTxId] = useState<string | null>(null);
@@ -558,23 +563,23 @@ export default function TransactionsPage() {
                                                     </td>
                                                     <td className="px-6 py-4 text-center whitespace-nowrap">
                                                         <div className="flex items-center justify-center gap-1">
-                                                            <button
-                                                                onClick={() => handleNotImplemented("View Transaction")}
+                                                            <Link
+                                                                href={`/transaction/${tx.id}`}
                                                                 title="View Details"
                                                                 className="p-1.5 rounded-lg text-foreground-muted hover:bg-surface-secondary hover:text-foreground transition-all"
                                                             >
                                                                 <Eye className="h-4 w-4" />
-                                                            </button>
+                                                            </Link>
                                                             <button
-                                                                onClick={() => handleNotImplemented("Edit Transaction")}
-                                                                title="Edit (API Pending)"
+                                                                onClick={() => setSelectedTxForEdit(tx)}
+                                                                title="Edit Transaction"
                                                                 className="p-1.5 rounded-lg text-foreground-muted hover:bg-surface-secondary hover:text-foreground transition-all"
                                                             >
                                                                 <Edit className="h-4 w-4" />
                                                             </button>
                                                             <button
-                                                                onClick={() => handleNotImplemented("Delete Transaction")}
-                                                                title="Delete (API Pending)"
+                                                                onClick={() => setSelectedTxForDelete(tx)}
+                                                                title="Delete Transaction"
                                                                 className="p-1.5 rounded-lg text-foreground-muted hover:bg-rose-500/10 hover:text-rose-600 transition-all"
                                                             >
                                                                 <Trash2 className="h-4 w-4" />
@@ -726,6 +731,20 @@ export default function TransactionsPage() {
                 isOpen={isContactModalOpen}
                 onClose={() => setIsContactModalOpen(false)}
                 onContactCreated={handleRefreshAll}
+            />
+
+            <EditTransactionModal
+                isOpen={!!selectedTxForEdit}
+                onClose={() => setSelectedTxForEdit(null)}
+                transaction={selectedTxForEdit}
+                onTransactionUpdated={handleRefreshAll}
+            />
+
+            <DeleteTransactionDialog
+                isOpen={!!selectedTxForDelete}
+                onClose={() => setSelectedTxForDelete(null)}
+                transaction={selectedTxForDelete}
+                onTransactionDeleted={handleRefreshAll}
             />
         </div>
     );

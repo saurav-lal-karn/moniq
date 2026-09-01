@@ -127,3 +127,158 @@ func (h *transactionHandler) ListTransactions(ctx *gin.Context) {
 	response := mapper.ToTransactonDetailsListResponse(list)
 	helper.PaginatedSuccessResponse(ctx, http.StatusOK, "Transactions retrieved successfully", response, req.Page, req.Limit, totalCount)
 }
+
+// Get transaction details godoc
+// 
+// @Summary Get transaction details
+// @Description Get transaction details
+// @Tags Transaction
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param x-workspace-id header string true "Workspace ID"
+// @Param id path string true "transaction Id"
+// @Success 200 {object} helper.Response
+// @Failure 400 {object} helper.Response
+// @Router /transaction/{id} [get]
+func(h *transactionHandler) GetTransactionDetails(ctx *gin.Context){
+	transactionId := ctx.Param("id")
+	if transactionId == "" {
+		helper.ErrorResponse(ctx, http.StatusBadRequest, "Transaction ID not found in request. Please try again")
+		return
+	}
+
+	transactionID, err := uuid.Parse(transactionId)
+	if err != nil {
+		helper.ErrorResponse(ctx, http.StatusBadRequest, "Malformed transaction ID in request. Please check again")
+		return
+	}
+
+	txn, err := h.service.GetByID(ctx, transactionID)
+	if err != nil {
+		helper.ErrorResponse(ctx, http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	response := mapper.ToTransactionDetailsResponse(txn)
+	
+	helper.SuccessResponse(ctx, http.StatusOK, "Details fetched successfully", response)
+}
+
+// Update transaction godoc
+// 
+// @Summary Update transaction
+// @Description Update transaction
+// @Tags Transaction
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param x-workspace-id header string true "Workspace ID"
+// @Param id path string true "transaction Id"
+// @Param request body dto.UpdateTransactionRequestDTO true "Updated transaction details"
+// @Success 200 {object} helper.Response
+// @Failure 400 {object} helper.Response
+// @Router /transaction/{id} [put]
+func(h *transactionHandler) UpdateTransaction(ctx *gin.Context) {
+	userId, exists := ctx.Get("userID")
+	if !exists {
+		helper.ErrorResponse(ctx, http.StatusUnauthorized, "User ID not found in context")
+		return
+	}
+
+	userID, err := uuid.Parse(userId.(string))
+	if err != nil {
+		helper.ErrorResponse(ctx, http.StatusUnauthorized, "Invalid user ID in the request")
+		return
+	}
+
+
+	workspaceId := ctx.GetHeader("X-Workspace-Id")
+	if workspaceId == ""{
+		helper.ErrorResponse(ctx, http.StatusBadRequest, "Workspace Id not found in header. Please try again.")
+		return
+	}
+
+	workspaceID, err := uuid.Parse(workspaceId)
+	if err != nil {
+		helper.ErrorResponse(ctx, http.StatusBadRequest, "Malformed workspace ID in request. Please check again")
+		return
+	}
+
+	transactionId := ctx.Param("id")
+	if transactionId == "" {
+		helper.ErrorResponse(ctx, http.StatusBadRequest, "Transaction ID not found in request. Please try again")
+		return
+	}
+
+	transactionID, err := uuid.Parse(transactionId)
+	if err != nil {
+		helper.ErrorResponse(ctx, http.StatusBadRequest, "Malformed transaction ID in request. Please check again")
+		return
+	}
+
+	var req dto.UpdateTransactionRequestDTO
+	if err := ctx.ShouldBindJSON(&req); err != nil {
+		helper.ErrorResponse(ctx, http.StatusBadRequest, helper.FormatValidationError(err))
+		return
+	}
+
+	req.ID = transactionID
+	req.WorkspaceID = workspaceID
+	req.CreatedBy = userID
+
+	err = h.service.Update(ctx, &req)
+	if err != nil {
+		helper.ErrorResponse(ctx, http.StatusInternalServerError, err.Error())
+		return
+	}
+	
+	helper.SuccessResponse(ctx, http.StatusOK, "Transaction updated successfully", nil)	
+}
+
+// Delete Transaction godoc
+// 
+// @Summary Delete Transaction
+// @Description Delete Transaction
+// @Tags Transaction
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param x-workspace-id header string true "Workspace ID"
+// @Param id path string true "Transaction Id"
+// @Success 200 {object} helper.Response
+// @Failure 400 {object} helper.Response
+// @Router /transaction/{id} [delete]
+func (h *transactionHandler) DeleteTransaction(ctx *gin.Context) {
+	workspaceId := ctx.GetHeader("X-Workspace-Id")
+	if workspaceId == ""{
+		helper.ErrorResponse(ctx, http.StatusBadRequest, "Workspace Id not found in header. Please try again.")
+		return
+	}
+
+	workspaceID, err := uuid.Parse(workspaceId)
+	if err != nil {
+		helper.ErrorResponse(ctx, http.StatusBadRequest, "Malformed workspace ID in request. Please check again")
+		return
+	}
+
+	txID := ctx.Param("id")
+	if txID == "" {
+		helper.ErrorResponse(ctx, http.StatusBadRequest, "Transaction ID is required.")
+		return
+	}
+
+	id, err := uuid.Parse(txID)
+	if err != nil {
+		helper.ErrorResponse(ctx, http.StatusBadRequest, "Invalid Transaction ID.")
+		return
+	}
+
+	err = h.service.Delete(ctx, id, workspaceID)
+	if err != nil {
+		helper.ErrorResponse(ctx, http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	helper.SuccessResponse(ctx, http.StatusOK, "Transaction deleted successfully", nil)
+}

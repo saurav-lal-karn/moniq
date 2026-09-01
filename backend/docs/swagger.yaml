@@ -315,6 +315,58 @@ definitions:
     required:
     - name
     type: object
+  dto.UpdateTransactionRequestDTO:
+    properties:
+      amount:
+        example: 25
+        type: number
+      contact_id:
+        example: 550e8400-e29b-41d4-a716-446655440002
+        type: string
+      date:
+        example: "2026-01-20"
+        type: string
+      description:
+        example: Stationery for the office
+        type: string
+      destination_wallet_id:
+        example: 550e8400-e29b-41d4-a716-446655440001
+        type: string
+      id:
+        example: 550e8400-e29b-41d4-a716-446655440003
+        type: string
+      items:
+        items:
+          $ref: '#/definitions/dto.TransactionItemRequestDTO'
+        type: array
+      tags:
+        example:
+        - office
+        - supplies
+        items:
+          type: string
+        type: array
+      type:
+        enum:
+        - expense
+        - income
+        - transfer-in
+        - transfer-out
+        - investment
+        - other
+        example: expense
+        type: string
+      wallet_id:
+        example: 550e8400-e29b-41d4-a716-446655440000
+        type: string
+    required:
+    - amount
+    - date
+    - id
+    - items
+    - type
+    - wallet_id
+    type: object
   dto.UpdateWalletRequestDTO:
     properties:
       currency:
@@ -1097,6 +1149,106 @@ paths:
       security:
       - BearerAuth: []
       summary: Create transaction
+      tags:
+      - Transaction
+  /transaction/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: Delete Transaction
+      parameters:
+      - description: Workspace ID
+        in: header
+        name: x-workspace-id
+        required: true
+        type: string
+      - description: Transaction Id
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/helper.Response'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/helper.Response'
+      security:
+      - BearerAuth: []
+      summary: Delete Transaction
+      tags:
+      - Transaction
+    get:
+      consumes:
+      - application/json
+      description: Get transaction details
+      parameters:
+      - description: Workspace ID
+        in: header
+        name: x-workspace-id
+        required: true
+        type: string
+      - description: transaction Id
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/helper.Response'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/helper.Response'
+      security:
+      - BearerAuth: []
+      summary: Get transaction details
+      tags:
+      - Transaction
+    put:
+      consumes:
+      - application/json
+      description: Update transaction
+      parameters:
+      - description: Workspace ID
+        in: header
+        name: x-workspace-id
+        required: true
+        type: string
+      - description: transaction Id
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Updated transaction details
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/dto.UpdateTransactionRequestDTO'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/helper.Response'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/helper.Response'
+      security:
+      - BearerAuth: []
+      summary: Update transaction
       tags:
       - Transaction
   /wallet:

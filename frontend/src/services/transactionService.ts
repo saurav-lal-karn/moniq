@@ -54,6 +54,19 @@ export interface CreateTransactionRequest {
     tags?: string[];
 }
 
+export interface UpdateTransactionRequest {
+    id: string;
+    amount?: number;
+    date?: string;
+    description?: string;
+    type?: string;
+    wallet_id?: string;
+    destination_wallet_id?: string;
+    contact_id?: string;
+    items?: TransactionItem[];
+    tags?: string[];
+}
+
 export interface ContactResponse {
     id: string;
     name: string;
@@ -105,10 +118,24 @@ export const transactionService = {
         const endpoint = `/transaction/${queryString ? `?${queryString}` : ""}`;
         return await apiFetch<PaginatedResult<TransactionResponse>>(endpoint);
     },
+    getTransactionById: async (id: string): Promise<TransactionResponse> => {
+        return await apiFetch<TransactionResponse>(`/transaction/${id}`);
+    },
     createTransaction: async (payload: CreateTransactionRequest): Promise<void> => {
         await apiFetch<void>("/transaction/", {
             method: "POST",
             body: JSON.stringify(payload),
+        });
+    },
+    updateTransaction: async (id: string, payload: Partial<CreateTransactionRequest>): Promise<void> => {
+        await apiFetch<void>(`/transaction/${id}`, {
+            method: "PUT",
+            body: JSON.stringify(payload),
+        });
+    },
+    deleteTransaction: async (id: string): Promise<void> => {
+        await apiFetch<void>(`/transaction/${id}`, {
+            method: "DELETE",
         });
     },
 };

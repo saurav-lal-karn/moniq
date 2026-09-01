@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/google/uuid"
+	"github.com/jackc/pgx/v5"
 	"github.com/saurav-lal-karn/moniq/backend/internal/database"
 	"github.com/saurav-lal-karn/moniq/backend/internal/helper"
 	baseModel "github.com/saurav-lal-karn/moniq/backend/internal/helper/model"
@@ -31,9 +32,9 @@ type transactionService struct {
 type TransactionService interface {
 	CreateTransaction(ctx context.Context, tx *dto.CreateTransactionRequestDTO) error
 	List(ctx context.Context, workspaceID uuid.UUID, req *helper.PaginationRequest) ([]*model.TransactionDetails, int, error)
-	GetByID(ctx context.Context, id uuid.UUID) (*model.Transaction, error)
-	Update(ctx context.Context, tx *model.Transaction) error
-	Delete(ctx context.Context, id uuid.UUID) error
+	GetByID(ctx context.Context, id uuid.UUID) (*model.TransactionDetails, error)
+	Update(ctx context.Context, tx *dto.UpdateTransactionRequestDTO) error
+	Delete(ctx context.Context, id uuid.UUID, workspaceID uuid.UUID) error
 }
 
 func NewTransactionService(txm *database.TxManager, transactionRepo repository.TransactionRepository, transactionItemRepo repository.TransactionItemRepository, ledgerRepo repository.LedgerRepository, contactRepo contactRepository.ContactRepository, walletRepo walletRepository.WalletRepository, tagRepository tagRepository.TagRepository, txTagRepo tagRepository.TransactionTagRepository) TransactionService {
@@ -281,14 +282,94 @@ func (s *transactionService) List(ctx context.Context, workspaceID uuid.UUID, re
 	return s.transactionRepo.List(ctx, workspaceID, req)
 }
 
-func (s *transactionService) GetByID(ctx context.Context, id uuid.UUID) (*model.Transaction, error) {
-	return s.transactionRepo.GetByID(ctx, id)
+func (s *transactionService) GetByID(ctx context.Context, id uuid.UUID) (*model.TransactionDetails, error) {
+	txn, err := s.transactionRepo.GetByID(ctx, id)
+	if err != nil {
+		if err == pgx.ErrNoRows {
+			return nil, helper.ErrTransactionNotFound
+		}
+		return nil, err
+	}
+	
+	return txn, nil
 }
 
-func (s *transactionService) Update(ctx context.Context, tx *model.Transaction) error {
-	return s.transactionRepo.Update(ctx, tx)
+func (s *transactionService) Update(ctx context.Context, tx *dto.UpdateTransactionRequestDTO) error {
+	// Check if transaction exists
+	exists, err := s.transactionRepo.CheckIfExists(ctx, tx.ID, tx.WorkspaceID)
+	if err != nil {
+		return err
+	}
+	if !exists {
+		return helper.ErrTransactionNotFound
+	}
+
+	// Check if transaction wallet id is valid
+	// Check if the wallet is exist
+	walletExists, err := s.walletRepo.CheckIfExists(ctx, tx.WalletID)
+	if err != nil {
+		return err
+	}
+	if !walletExists {
+		return helper.ErrWalletNotFound
+	}
+
+	contactExists, err := s.contactRepo.CheckIfExists(ctx, *tx.ContactID)
+	if err != nil {
+		return err
+	}
+	if !contactExists {
+		return helper.ErrContactNotFound
+	}
+	
+	if tx.Type == string(model.TransferIn) || tx.Type == string(model.TransferOut) {
+		if tx.DestinationWalletID == nil {
+			return helper.ErrDestinationWalletIDRequired
+		}
+		destinationWalletExists, err := s.walletRepo.CheckIfExists(ctx, *tx.DestinationWalletID)
+		if err != nil {
+			return err
+		}
+		if !destinationWalletExists {
+			return helper.ErrWalletNotFound
+		}
+	}
+
+	transaction := model.Transaction{
+		BaseModel: baseModel.BaseModel{ID: tx.ID},
+		Amount: tx.Amount,
+		Date: tx.Date.Time,
+		Description: tx.Description,
+		Type: model.TransactionType(tx.Type),
+		WalletID: tx.WalletID,
+		ContactID: tx.ContactID,
+		WorkspaceID: tx.WorkspaceID,
+		CreatedBy: tx.CreatedBy,
+	}
+
+	// Add the transaction saving into the database transactions
+	err = s.txm.Run(ctx, func(ctx context.Context) error {
+		// Add the transaction saving into the database transactions
+		if err := s.transactionRepo.Update(ctx, &transaction); err != nil {
+			return err
+		}
+
+		// TODO: Handle the tags updating and updating the ledger entry based on the transaction type
+
+		return nil
+	})
+
+	return err
 }
 
-func (s *transactionService) Delete(ctx context.Context, id uuid.UUID) error {
+func (s *transactionService) Delete(ctx context.Context, id uuid.UUID, workspaceID uuid.UUID) error {
+	exists, err := s.transactionRepo.CheckIfExists(ctx, id, workspaceID)
+	if err != nil {
+		return err
+	}
+	if !exists {
+		return helper.ErrTransactionNotFound
+	}
+
 	return s.transactionRepo.Delete(ctx, id)
 }

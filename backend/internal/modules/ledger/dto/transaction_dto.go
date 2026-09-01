@@ -29,9 +29,9 @@ type CreateTransactionRequestDTO struct {
 }
 
 type UpdateTransactionRequestDTO struct {
-	ID                  string                      `json:"id" binding:"required" example:"550e8400-e29b-41d4-a716-446655440003"`
+	ID                  uuid.UUID                   `json:"id" binding:"required" example:"550e8400-e29b-41d4-a716-446655440003"`
 	Amount              float64                     `json:"amount" binding:"required" example:"25.00"`
-	Date                time.Time                   `json:"date" binding:"required" swaggertype:"string" example:"2026-01-20"`
+	Date                helper.Date                   `json:"date" binding:"required" swaggertype:"string" example:"2026-01-20"`
 	Description         *string                     `json:"description" example:"Stationery for the office"`
 	Type                string                      `json:"type" binding:"required,oneof=expense income transfer-in transfer-out investment other" example:"expense"`
 	WalletID            uuid.UUID                   `json:"wallet_id" binding:"required" example:"550e8400-e29b-41d4-a716-446655440000"`

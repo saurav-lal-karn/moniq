@@ -262,7 +262,6 @@ func(h *walletHandler) DeleteWallet(ctx *gin.Context) {
 		return
 	}
 
-
 	workspaceId := ctx.GetHeader("X-Workspace-Id")
 	if workspaceId == ""{
 		helper.ErrorResponse(ctx, http.StatusBadRequest, "Workspace Id not found in header. Please try again.")

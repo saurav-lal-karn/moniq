@@ -33,8 +33,8 @@ func RegisterTransactionRoutes(router *gin.RouterGroup, txm *database.TxManager)
 	{
 		transactionRoutes.POST("/", transactionHandler.CreateTransaction)
 		transactionRoutes.GET("/", transactionHandler.ListTransactions)
-		// transactionRoutes.GET("/:id", h.GetByID)
-		// transactionRoutes.PUT("/:id", h.Update)
-		// transactionRoutes.DELETE("/:id", h.Delete)
+		transactionRoutes.GET("/:id", transactionHandler.GetTransactionDetails)
+		transactionRoutes.PUT("/:id", transactionHandler.UpdateTransaction)
+		transactionRoutes.DELETE("/:id", transactionHandler.DeleteTransaction)
 	}
 }

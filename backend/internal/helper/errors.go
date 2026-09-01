@@ -25,4 +25,6 @@ var (
 
 	ErrTagNotFound = errors.New("Tag not found. Please try again")
 	ErrContactNotFound = errors.New("Contact not found. Please try again")
+	ErrTransactionNotFound = errors.New("Transaction not found. Please try again")
+	ErrDestinationWalletIDRequired = errors.New("Destination wallet ID is required for this transaction type")
 )

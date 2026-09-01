@@ -18,9 +18,10 @@ type transactionRepository struct {
 type TransactionRepository interface {
 	Create(ctx context.Context, tx *model.Transaction) error
 	List(ctx context.Context, workspaceID uuid.UUID, req *helper.PaginationRequest) ([]*model.TransactionDetails, int, error)
-	GetByID(ctx context.Context, id uuid.UUID) (*model.Transaction, error)
+	GetByID(ctx context.Context, id uuid.UUID) (*model.TransactionDetails, error)
 	Update(ctx context.Context, tx *model.Transaction) error
 	Delete(ctx context.Context, id uuid.UUID) error
+	CheckIfExists(ctx context.Context, id uuid.UUID, workspaceID uuid.UUID) (bool, error)
 }
 
 func NewTransactionRepository(db database.DB) TransactionRepository {
@@ -223,97 +224,92 @@ func (r *transactionRepository) List(ctx context.Context, workspaceID uuid.UUID,
 	}
 
 	return transactions, total, nil
-
-	// query := `
-	// 	SELECT
-	// 		transactions.id as transaction_id,
-	// 		transactions.amount as transaction_amount,
-	// 		transactions.date as transaction_date,
-	// 		transactions.description as transaction_description,
-	// 		transactions.type as transaction_type,
-	// 		transactions.wallet_id as transaction_wallet_id,
-	// 		transactions.contact_id as transaction_contact_id,
-	// 		transactions.workspace_id as transaction_workspace_id,
-	// 		transactions.created_by as transaction_created_by,
-	// 		transaction_items.id as transaction_item_id,
-	// 		transaction_items.name as transaction_item_name,
-	// 		transaction_items.quantity as transaction_item_quantity,
-	// 		transaction_items.price as transaction_item_price,
-	// 		transaction_items.total as transaction_item_total
-	// 	FROM transactions
-	// 	LEFT JOIN transaction_items ON transactions.id = transaction_items.transaction_id
-	// 	WHERE transactions.workspace_id = $1 AND transactions.deleted_at IS NULL AND transaction_items.deleted_at IS NULL
-	// `
-
-	// rows, err := r.db.Executor(ctx).Query(ctx, query, workspaceID)
-	// if err != nil {
-	// 	return nil, err
-	// }
-	// defer rows.Close()
-	// transactionsMap := make(map[string]*model.TransactionDetails)
-	// transactionOrder := make([]string, 0)
-
-	// for rows.Next() {
-	// 	var row model.TransactionRow
-	// 	if err := rows.Scan(&row.TransactionID, &row.TransactionAmount, &row.TransactionDate, &row.TransactionDescription, &row.TransactionType, &row.TransactionWalletID, &row.TransactionContactID, &row.TransactionWorkspaceID, &row.TransactionCreatedBy, &row.TransactionItemID, &row.TransactionItemName, &row.TransactionItemQuantity, &row.TransactionItemPrice, &row.TransactionItemTotal); err != nil {
-	// 		return nil, err
-	// 	}
-
-	// 	transaction, exists := transactionsMap[row.TransactionID]
-
-	// 	if !exists {
-	// 		transaction = &model.TransactionDetails{
-	// 			ID: row.TransactionID,
-	// 			Amount: row.TransactionAmount,
-	// 			Date: row.TransactionDate,
-	// 			Description: row.TransactionDescription,
-	// 			Type: row.TransactionType,
-	// 			WalletID: row.TransactionWalletID,
-	// 			ContactID: row.TransactionContactID,
-	// 			WorkspaceID: row.TransactionWorkspaceID,
-	// 			CreatedBy: row.TransactionCreatedBy,
-	// 			Items: []model.TransactionItemDetails{},
-	// 		}
-	// 		transactionsMap[row.TransactionID] = transaction
-	// 		transactionOrder = append(transactionOrder, row.TransactionID)
-	// 	}
-
-	// 	if row.TransactionItemID != "" {
-	// 		transaction.Items = append(transaction.Items, model.TransactionItemDetails{
-	// 			ID: row.TransactionItemID,
-	// 			Name: row.TransactionItemName,
-	// 			Quantity: row.TransactionItemQuantity,
-	// 			Price: row.TransactionItemPrice,
-	// 			Total: row.TransactionItemTotal,
-	// 		})
-	// 	}
-	// }
-
-	// transactions := make([]*model.TransactionDetails, 0, len(transactionOrder))
-
-	// for _, id := range transactionOrder {
-	// 	transactions = append(transactions, transactionsMap[id])
-	// }
 }
 
-func (r *transactionRepository) GetByID(ctx context.Context, id uuid.UUID) (*model.Transaction, error) {
+func (r *transactionRepository) GetByID(ctx context.Context, id uuid.UUID) (*model.TransactionDetails, error) {
 	query := `
 		SELECT
-			id,
-			amount,
-			date,
-			description,
-			type,
-			wallet_id,
-			contact_id,
-			workspace_id,
-			created_by
-		FROM transactions
-		WHERE id = $1 AND deleted_at IS NULL
+			t.id,
+			t.amount,
+			t.date,
+			t.description,
+			t.type,
+			t.wallet_id,
+			t.contact_id,
+			t.workspace_id,
+			t.created_by,
+			CASE
+				WHEN w.id IS NOT NULL THEN
+					jsonb_build_object(
+						'id', w.id,
+						'name', w.name
+					)
+				ELSE NULL
+			END AS wallet,
+			CASE
+				WHEN c.id IS NOT NULL THEN
+					jsonb_build_object(
+						'id', c.id,
+						'name', c.name
+					)
+				ELSE NULL
+			END AS contact,
+			COALESCE(
+				(
+					SELECT jsonb_agg(
+						jsonb_build_object(
+							'id', ti.id,
+							'name', ti.name,
+							'quantity', ti.quantity,
+							'price', ti.price,
+							'total', ti.total
+						)
+						ORDER BY ti.id
+					)
+					FROM transaction_items ti
+					WHERE ti.transaction_id = t.id
+					AND ti.deleted_at IS NULL
+				),
+				'[]'::jsonb
+			) AS items,
+			 COALESCE(
+				(
+					SELECT jsonb_agg(
+						jsonb_build_object(
+							'id', tg.id,
+							'name', tg.name
+						)
+						ORDER BY tg.name
+					)
+					FROM transaction_tags tt
+					JOIN tags tg
+						ON tg.id = tt.tag_id
+					WHERE tt.transaction_id = t.id
+				),
+				'[]'::jsonb
+			) AS tags
+		FROM transactions as t
+		LEFT JOIN wallets w ON t.wallet_id = w.id AND w.deleted_at IS NULL
+		LEFT JOIN contacts c ON t.contact_id = c.id AND c.deleted_at IS NULL
+		WHERE t.id = $1 AND t.deleted_at IS NULL
 	`
 
-	var tx model.Transaction
-	err := r.db.Executor(ctx).QueryRow(ctx, query, id).Scan(&tx.ID, &tx.Amount, &tx.Date, &tx.Description, &tx.Type, &tx.WalletID, &tx.ContactID, &tx.WorkspaceID, &tx.CreatedBy)
+	var tx model.TransactionDetails
+	err := r.db.Executor(ctx).QueryRow(ctx, query, id).Scan(
+		&tx.ID,
+		&tx.Amount,
+		&tx.Date,
+		&tx.Description,
+		&tx.Type,
+		&tx.WalletID,
+		&tx.ContactID,
+		&tx.WorkspaceID,
+		&tx.CreatedBy,
+		&tx.Wallet,
+		&tx.Contact,
+		&tx.Items,
+		&tx.Tags,
+	)
 	if err != nil {
 		return nil, err
 	}
@@ -351,4 +347,13 @@ func (r *transactionRepository) Delete(ctx context.Context, id uuid.UUID) error 
 	`
 	_, err := r.db.Executor(ctx).Exec(ctx, query, id)
 	return err
+}
+
+func (r *transactionRepository) CheckIfExists(ctx context.Context, id uuid.UUID, workspaceID uuid.UUID) (bool, error) {
+	query := `
+		SELECT EXISTS(SELECT 1 FROM transactions WHERE id = $1 AND workspace_id = $2 AND deleted_at IS NULL)
+	`
+	var exists bool
+	err := r.db.Executor(ctx).QueryRow(ctx, query, id, workspaceID).Scan(&exists)
+	return exists, err
 }
