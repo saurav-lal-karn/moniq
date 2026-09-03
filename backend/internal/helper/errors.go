@@ -27,4 +27,12 @@ var (
 	ErrContactNotFound = errors.New("Contact not found. Please try again")
 	ErrTransactionNotFound = errors.New("Transaction not found. Please try again")
 	ErrDestinationWalletIDRequired = errors.New("Destination wallet ID is required for this transaction type")
+
+	// Errors when failed to query
+	ErrFailedToQueryWalletType = errors.New("Failed to query wallet type. Please try again")
+	ErrFailedToQueryWallet = errors.New("Failed to query wallet. Please try again")
+
+	// Errors when failed to update
+	ErrFailedToUpdateWalletType = errors.New("Failed to update wallet type. Please try again")
+	ErrFailedToUpdateWallet = errors.New("Failed to update wallet. Please try again")
 )

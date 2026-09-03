@@ -37,12 +37,13 @@ func (s *walletService) CreateWallet(ctx context.Context, req *dto.CreateWalletR
 		return helper.ErrWalletTypeNotFound
 	}
 	// check if wallet type exists in the database
-	_, err := s.walletTypeRepo.GetByID(ctx, req.TypeID)
+	exists, err := s.walletTypeRepo.CheckIfExists(ctx, req.TypeID)
 	if err != nil {
-		if err == pgx.ErrNoRows {
-			return helper.ErrWalletTypeNotFound
-		}
-		return err
+		return helper.ErrFailedToQueryWalletType
+	}
+
+	if !exists {
+		return helper.ErrWalletTypeNotFound
 	}
 
 	wallet := &model.Wallet{
@@ -74,12 +75,13 @@ func (s *walletService) List(ctx context.Context, userID uuid.UUID, workspaceID 
 }
 
 func (s *walletService) Update(ctx context.Context, userID uuid.UUID, workspaceID uuid.UUID, req *dto.UpdateWalletRequestDTO) error {
-	_, err := s.walletRepo.GetByID(ctx, req.ID)
+	walletExists, err := s.walletRepo.CheckIfExists(ctx, req.ID)
 	if err != nil {
-		if err == pgx.ErrNoRows {
-			return helper.ErrWalletNotFound
-		}
-		return err
+		return helper.ErrFailedToQueryWallet
+	}
+
+	if !walletExists {
+		return helper.ErrWalletNotFound
 	}
 
 	// Check if the user is the owner
@@ -93,12 +95,12 @@ func (s *walletService) Update(ctx context.Context, userID uuid.UUID, workspaceI
 	}
 
 	// check wallet type
-	_, err = s.walletTypeRepo.GetByID(ctx, req.TypeID)
+	exists, err := s.walletTypeRepo.CheckIfExists(ctx, req.TypeID)
 	if err != nil {
-		if err == pgx.ErrNoRows {
-			return helper.ErrWalletTypeNotFound
-		}
-		return err
+		return helper.ErrFailedToQueryWalletType
+	}
+	if !exists {
+		return helper.ErrWalletTypeNotFound
 	}
 
 	updatedWallet := &model.Wallet{
@@ -115,12 +117,13 @@ func (s *walletService) Update(ctx context.Context, userID uuid.UUID, workspaceI
 }
 
 func (s *walletService) Delete(ctx context.Context, id uuid.UUID, userID uuid.UUID, workspaceID uuid.UUID) error {
-	_, err := s.walletRepo.GetByID(ctx, id)
+	exists, err := s.walletRepo.CheckIfExists(ctx, id)
 	if err != nil {
-		if err == pgx.ErrNoRows {
-			return helper.ErrWalletNotFound
-		}
-		return err
+		return helper.ErrFailedToQueryWallet
+	}
+
+	if !exists {
+		return helper.ErrWalletNotFound
 	}
 
 	// Check if the user is the owner

@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect, useCallback } from "react";
 import { Modal } from "@/components/ui/modal";
+import { DeleteConfirmationModal } from "@/components/ui/modal/DeleteConfirmationModal";
 import { Button } from "@/components/ui/button";
 import { walletService, Wallet, WalletType } from "@/services/walletService";
 import { useWorkspace } from "@/context/WorkspaceContext";
@@ -10,6 +11,7 @@ import {
     Wallet as WalletIcon,
     Eye,
     Edit2,
+    Trash2,
     Plus,
     Landmark,
     CreditCard,
@@ -20,6 +22,8 @@ import {
     ArrowUpRight,
     ChevronRight,
 } from "lucide-react";
+import { EditWalletModal } from "./components/EditWalletModal";
+import { ViewWalletModal } from "./components/ViewWalletModal";
 
 // List of supported currencies
 const CURRENCIES = [
@@ -63,10 +67,23 @@ export default function WalletsPage() {
     const [loading, setLoading] = useState(true);
 
     // Modal open states
-    const [isWalletModalOpen, setIsWalletModalOpen] = useState(false);
+    const [isCreateWalletModalOpen, setIsCreateWalletModalOpen] = useState(false);
     const [isTypeModalOpen, setIsTypeModalOpen] = useState(false);
 
-    // Form states - Wallet
+    // View Wallet modal state
+    const [viewWalletId, setViewWalletId] = useState<string | null>(null);
+    const [isViewModalOpen, setIsViewModalOpen] = useState(false);
+
+    // Edit Wallet modal state
+    const [selectedWalletForEdit, setSelectedWalletForEdit] = useState<Wallet | null>(null);
+    const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+
+    // Delete Wallet modal state
+    const [selectedWalletForDelete, setSelectedWalletForDelete] = useState<Wallet | null>(null);
+    const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+    const [isDeleting, setIsDeleting] = useState(false);
+
+    // Form states - Create Wallet
     const [walletName, setWalletName] = useState("");
     const [walletDescription, setWalletDescription] = useState("");
     const [walletCurrency, setWalletCurrency] = useState("USD");
@@ -99,45 +116,103 @@ export default function WalletsPage() {
         }
     }, [activeWorkspace]);
 
-    useEffect(() => { fetchData(); }, [fetchData]);
+    useEffect(() => {
+        fetchData();
+    }, [fetchData]);
 
     const handleCreateType = async (e: React.FormEvent) => {
         e.preventDefault();
-        if (!typeName.trim()) { toast.error("Wallet type name is required."); return; }
+        if (!typeName.trim()) {
+            toast.error("Wallet type name is required.");
+            return;
+        }
         setCreatingType(true);
         try {
-            await walletService.createWalletType({ name: typeName.trim(), description: typeDescription.trim() });
+            await walletService.createWalletType({
+                name: typeName.trim(),
+                description: typeDescription.trim(),
+            });
             toast.success("Wallet type created!");
-            setTypeName(""); setTypeDescription(""); setIsTypeModalOpen(false);
+            setTypeName("");
+            setTypeDescription("");
+            setIsTypeModalOpen(false);
             const updatedTypes = await walletService.listWalletTypes();
             setWalletTypes(updatedTypes || []);
-            const newType = updatedTypes.find((t) => t.name.toLowerCase() === typeName.trim().toLowerCase());
+            const newType = updatedTypes.find(
+                (t) => t.name.toLowerCase() === typeName.trim().toLowerCase()
+            );
             if (newType) setSelectedTypeId(newType.id);
         } catch (error: unknown) {
             const msg = error instanceof Error ? error.message : "Failed to create wallet type.";
             toast.error(msg);
-        } finally { setCreatingType(false); }
+        } finally {
+            setCreatingType(false);
+        }
     };
 
     const handleCreateWallet = async (e: React.FormEvent) => {
         e.preventDefault();
-        if (!walletName.trim()) { toast.error("Wallet name is required."); return; }
-        if (!selectedTypeId) { toast.error("Please select a wallet type."); return; }
+        if (!walletName.trim()) {
+            toast.error("Wallet name is required.");
+            return;
+        }
+        if (!selectedTypeId) {
+            toast.error("Please select a wallet type.");
+            return;
+        }
         setCreatingWallet(true);
         try {
-            await walletService.createWallet({ name: walletName.trim(), currency: walletCurrency, type_id: selectedTypeId, description: walletDescription.trim() });
+            await walletService.createWallet({
+                name: walletName.trim(),
+                currency: walletCurrency,
+                type_id: selectedTypeId,
+                description: walletDescription.trim(),
+            });
             toast.success("Wallet created!");
-            setWalletName(""); setWalletDescription(""); setWalletCurrency("USD"); setIsWalletModalOpen(false);
-            const updatedWallets = await walletService.listWallets();
-            setWallets(updatedWallets || []);
+            setWalletName("");
+            setWalletDescription("");
+            setWalletCurrency("USD");
+            setIsCreateWalletModalOpen(false);
+            fetchData();
         } catch (error: unknown) {
             const msg = error instanceof Error ? error.message : "Failed to create wallet.";
             toast.error(msg);
-        } finally { setCreatingWallet(false); }
+        } finally {
+            setCreatingWallet(false);
+        }
     };
 
-    const handleNotIntegrated = (actionName: string) => {
-        toast.error(`${actionName} feature has not been integrated yet.`);
+    // Actions for GET, EDIT, DELETE
+    const handleOpenViewModal = (walletId: string) => {
+        setViewWalletId(walletId);
+        setIsViewModalOpen(true);
+    };
+
+    const handleOpenEditModal = (wallet: Wallet) => {
+        setSelectedWalletForEdit(wallet);
+        setIsEditModalOpen(true);
+    };
+
+    const handleOpenDeleteModal = (wallet: Wallet) => {
+        setSelectedWalletForDelete(wallet);
+        setIsDeleteModalOpen(true);
+    };
+
+    const handleConfirmDeleteWallet = async () => {
+        if (!selectedWalletForDelete) return;
+        setIsDeleting(true);
+        try {
+            await walletService.deleteWallet(selectedWalletForDelete.id);
+            toast.success("Wallet deleted successfully!");
+            setIsDeleteModalOpen(false);
+            setSelectedWalletForDelete(null);
+            fetchData();
+        } catch (error: unknown) {
+            const msg = error instanceof Error ? error.message : "Failed to delete wallet.";
+            toast.error(msg);
+        } finally {
+            setIsDeleting(false);
+        }
     };
 
     const getWalletIcon = (typeNameStr: string) => {
@@ -154,7 +229,6 @@ export default function WalletsPage() {
         return found ? found.name : "Unknown";
     };
 
-    // Field class for consistent input styling in modals
     const fieldCls = "mt-1 block w-full rounded-xl border border-border bg-surface-secondary px-4 py-2.5 text-sm text-foreground placeholder:text-foreground-muted focus:border-primary focus:ring-2 focus:ring-primary/20 focus:outline-none transition-all duration-150";
     const labelCls = "block text-xs font-semibold uppercase tracking-wider text-foreground-muted";
 
@@ -175,7 +249,7 @@ export default function WalletsPage() {
                     </p>
                 </div>
                 <Button
-                    onClick={() => setIsWalletModalOpen(true)}
+                    onClick={() => setIsCreateWalletModalOpen(true)}
                     className="group flex items-center gap-2 rounded-xl bg-primary px-5 py-2.5 text-sm font-semibold text-white shadow-md hover:bg-primary-hover transition-all duration-200 hover:shadow-lg hover:scale-[1.02] active:scale-[0.98] animate-fade-in-down delay-100"
                 >
                     <Plus className="h-4 w-4 transition-transform duration-200 group-hover:rotate-90" />
@@ -189,7 +263,7 @@ export default function WalletsPage() {
                     {[
                         { label: "Total Wallets", value: wallets.length },
                         { label: "Wallet Types", value: walletTypes.length },
-                        { label: "Currencies", value: [...new Set(wallets.map(w => w.currency))].length },
+                        { label: "Currencies", value: [...new Set(wallets.map((w) => w.currency))].length },
                         { label: "Active", value: wallets.length },
                     ].map((stat, i) => (
                         <div
@@ -226,7 +300,7 @@ export default function WalletsPage() {
                         Add your first wallet to start tracking income, expenses, and balances.
                     </p>
                     <Button
-                        onClick={() => setIsWalletModalOpen(true)}
+                        onClick={() => setIsCreateWalletModalOpen(true)}
                         className="mt-7 flex items-center gap-2 rounded-xl bg-primary px-6 py-2.5 text-sm font-semibold text-white shadow hover:bg-primary-hover transition-all hover:shadow-md"
                     >
                         <Plus className="h-4 w-4" /> Create First Wallet
@@ -241,7 +315,7 @@ export default function WalletsPage() {
                         return (
                             <div
                                 key={wallet.id}
-                                className="group relative overflow-hidden rounded-2xl border border-border bg-surface shadow-xs transition-all duration-300 hover:-translate-y-1 hover:shadow-xl hover:border-primary/20 animate-fade-in-up"
+                                className="group relative overflow-hidden rounded-2xl border border-border bg-surface shadow-xs transition-all duration-300 hover:-translate-y-1 hover:shadow-xl hover:border-primary/20 animate-fade-in-up flex flex-col justify-between"
                                 style={{ animationDelay: `${idx * 60}ms` }}
                             >
                                 {/* Gradient top bar */}
@@ -259,9 +333,18 @@ export default function WalletsPage() {
                                         >
                                             {getWalletIcon(typeName)}
                                         </div>
-                                        <span className="inline-flex items-center rounded-full border border-border bg-surface-secondary px-2.5 py-0.5 text-[11px] font-bold tracking-widest text-foreground-muted uppercase">
-                                            {wallet.currency}
-                                        </span>
+                                        <div className="flex items-center gap-2">
+                                            <span className="inline-flex items-center rounded-full border border-border bg-surface-secondary px-2.5 py-0.5 text-[11px] font-bold tracking-widest text-foreground-muted uppercase">
+                                                {wallet.currency}
+                                            </span>
+                                            <button
+                                                onClick={() => handleOpenDeleteModal(wallet)}
+                                                title="Delete Wallet"
+                                                className="p-1.5 text-foreground-muted hover:text-red-500 rounded-lg hover:bg-red-50 dark:hover:bg-red-900/10 transition-colors"
+                                            >
+                                                <Trash2 className="h-4 w-4" />
+                                            </button>
+                                        </div>
                                     </div>
 
                                     <div className="mt-5">
@@ -283,22 +366,22 @@ export default function WalletsPage() {
                                 {/* Card footer */}
                                 <div className="flex items-center justify-between border-t border-border px-6 py-3 bg-surface-secondary/40">
                                     <button
-                                        onClick={() => handleNotIntegrated("View Wallet")}
+                                        onClick={() => handleOpenViewModal(wallet.id)}
                                         className="inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-semibold text-foreground-muted hover:bg-surface-secondary hover:text-foreground transition-all duration-150"
                                     >
                                         <Eye className="h-3.5 w-3.5" /> View
                                     </button>
                                     <button
-                                        onClick={() => handleNotIntegrated("Edit Wallet")}
+                                        onClick={() => handleOpenEditModal(wallet)}
                                         className="inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-semibold text-foreground-muted hover:bg-surface-secondary hover:text-foreground transition-all duration-150"
                                     >
                                         <Edit2 className="h-3.5 w-3.5" /> Edit
                                     </button>
                                     <button
-                                        onClick={() => handleNotIntegrated("Wallet Transactions")}
+                                        onClick={() => handleOpenViewModal(wallet.id)}
                                         className="inline-flex items-center gap-1 text-xs font-semibold text-primary hover:underline transition-colors"
                                     >
-                                        Transactions <ArrowUpRight className="h-3 w-3" />
+                                        Details <ArrowUpRight className="h-3 w-3" />
                                     </button>
                                 </div>
 
@@ -313,8 +396,8 @@ export default function WalletsPage() {
 
                     {/* Add wallet tile */}
                     <button
-                        onClick={() => setIsWalletModalOpen(true)}
-                        className="group flex flex-col items-center justify-center gap-3 rounded-2xl border-2 border-dashed border-border/60 bg-transparent p-6 text-center transition-all duration-200 hover:border-primary/40 hover:bg-primary/4 animate-fade-in-up"
+                        onClick={() => setIsCreateWalletModalOpen(true)}
+                        className="group flex flex-col items-center justify-center gap-3 rounded-2xl border-2 border-dashed border-border/60 bg-transparent p-6 text-center transition-all duration-200 hover:border-primary/40 hover:bg-primary/4 animate-fade-in-up min-h-[220px]"
                         style={{ animationDelay: `${wallets.length * 60}ms` }}
                     >
                         <div className="flex h-12 w-12 items-center justify-center rounded-xl border border-dashed border-primary/30 text-primary transition-all duration-200 group-hover:bg-primary group-hover:text-white group-hover:border-primary group-hover:scale-110">
@@ -364,10 +447,48 @@ export default function WalletsPage() {
                 </div>
             )}
 
-            {/* ─── Add Wallet Modal ─── */}
-            <Modal isOpen={isWalletModalOpen} onClose={() => setIsWalletModalOpen(false)} className="max-w-md">
+            {/* ─── View Wallet Details Modal ─── */}
+            <ViewWalletModal
+                isOpen={isViewModalOpen}
+                onClose={() => {
+                    setIsViewModalOpen(false);
+                    setViewWalletId(null);
+                }}
+                walletId={viewWalletId}
+                walletTypes={walletTypes}
+                onEdit={(w) => handleOpenEditModal(w)}
+                onDelete={(w) => handleOpenDeleteModal(w)}
+            />
+
+            {/* ─── Edit Wallet Modal ─── */}
+            <EditWalletModal
+                isOpen={isEditModalOpen}
+                onClose={() => {
+                    setIsEditModalOpen(false);
+                    setSelectedWalletForEdit(null);
+                }}
+                wallet={selectedWalletForEdit}
+                walletTypes={walletTypes}
+                currencies={CURRENCIES}
+                onSuccess={() => fetchData()}
+            />
+
+            {/* ─── Delete Confirmation Modal ─── */}
+            <DeleteConfirmationModal
+                isOpen={isDeleteModalOpen}
+                onClose={() => {
+                    setIsDeleteModalOpen(false);
+                    setSelectedWalletForDelete(null);
+                }}
+                onConfirm={handleConfirmDeleteWallet}
+                title="Delete Wallet"
+                description={`Are you sure you want to delete "${selectedWalletForDelete?.name}"? This action cannot be undone.`}
+                isDeleting={isDeleting}
+            />
+
+            {/* ─── Create Wallet Modal ─── */}
+            <Modal isOpen={isCreateWalletModalOpen} onClose={() => setIsCreateWalletModalOpen(false)} className="max-w-md">
                 <div className="p-6">
-                    {/* Modal header with gradient */}
                     <div className="flex items-center gap-3 mb-6">
                         <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary text-white shadow">
                             <WalletIcon className="h-5 w-5" />
@@ -382,7 +503,9 @@ export default function WalletsPage() {
                         <div>
                             <label className={labelCls}>Wallet Name *</label>
                             <input
-                                type="text" required value={walletName}
+                                type="text"
+                                required
+                                value={walletName}
                                 onChange={(e) => setWalletName(e.target.value)}
                                 placeholder="e.g. Chase Checking, Emergency Fund"
                                 className={fieldCls}
@@ -392,9 +515,15 @@ export default function WalletsPage() {
                         <div className="grid grid-cols-2 gap-4">
                             <div>
                                 <label className={labelCls}>Currency *</label>
-                                <select value={walletCurrency} onChange={(e) => setWalletCurrency(e.target.value)} className={fieldCls}>
+                                <select
+                                    value={walletCurrency}
+                                    onChange={(e) => setWalletCurrency(e.target.value)}
+                                    className={fieldCls}
+                                >
                                     {CURRENCIES.map((c) => (
-                                        <option key={c.code} value={c.code}>{c.code} ({c.symbol})</option>
+                                        <option key={c.code} value={c.code}>
+                                            {c.code} ({c.symbol})
+                                        </option>
                                     ))}
                                 </select>
                             </div>
@@ -402,14 +531,23 @@ export default function WalletsPage() {
                                 <div className="flex items-center justify-between">
                                     <label className={labelCls}>Type *</label>
                                     <button
-                                        type="button" onClick={() => setIsTypeModalOpen(true)}
+                                        type="button"
+                                        onClick={() => setIsTypeModalOpen(true)}
                                         className="text-[10px] font-bold text-primary hover:underline flex items-center gap-0.5"
                                     >
                                         <Plus className="h-3 w-3" /> Custom
                                     </button>
                                 </div>
-                                <select value={selectedTypeId} onChange={(e) => setSelectedTypeId(e.target.value)} className={fieldCls}>
-                                    {walletTypes.map((t) => (<option key={t.id} value={t.id}>{t.name}</option>))}
+                                <select
+                                    value={selectedTypeId}
+                                    onChange={(e) => setSelectedTypeId(e.target.value)}
+                                    className={fieldCls}
+                                >
+                                    {walletTypes.map((t) => (
+                                        <option key={t.id} value={t.id}>
+                                            {t.name}
+                                        </option>
+                                    ))}
                                 </select>
                             </div>
                         </div>
@@ -426,12 +564,19 @@ export default function WalletsPage() {
                         </div>
 
                         <div className="flex justify-end gap-3 pt-1">
-                            <Button type="button" variant="secondary" onClick={() => setIsWalletModalOpen(false)}
-                                className="rounded-xl border border-border bg-surface px-4 text-foreground hover:bg-surface-secondary">
+                            <Button
+                                type="button"
+                                variant="secondary"
+                                onClick={() => setIsCreateWalletModalOpen(false)}
+                                className="rounded-xl border border-border bg-surface px-4 text-foreground hover:bg-surface-secondary"
+                            >
                                 Cancel
                             </Button>
-                            <Button type="submit" disabled={creatingWallet}
-                                className="rounded-xl bg-primary px-5 text-white hover:bg-primary-hover flex items-center gap-2 shadow hover:shadow-md transition-all">
+                            <Button
+                                type="submit"
+                                disabled={creatingWallet}
+                                className="rounded-xl bg-primary px-5 text-white hover:bg-primary-hover flex items-center gap-2 shadow hover:shadow-md transition-all"
+                            >
                                 {creatingWallet && <Loader2 className="h-4 w-4 animate-spin" />}
                                 Create Wallet
                             </Button>
@@ -457,7 +602,9 @@ export default function WalletsPage() {
                         <div>
                             <label className={labelCls}>Category Name *</label>
                             <input
-                                type="text" required value={typeName}
+                                type="text"
+                                required
+                                value={typeName}
                                 onChange={(e) => setTypeName(e.target.value)}
                                 placeholder="e.g. Crypto Hardware Wallet, Line of Credit"
                                 className={fieldCls}
@@ -474,12 +621,19 @@ export default function WalletsPage() {
                             />
                         </div>
                         <div className="flex justify-end gap-3 pt-1">
-                            <Button type="button" variant="secondary" onClick={() => setIsTypeModalOpen(false)}
-                                className="rounded-xl border border-border bg-surface px-4 text-foreground hover:bg-surface-secondary">
+                            <Button
+                                type="button"
+                                variant="secondary"
+                                onClick={() => setIsTypeModalOpen(false)}
+                                className="rounded-xl border border-border bg-surface px-4 text-foreground hover:bg-surface-secondary"
+                            >
                                 Cancel
                             </Button>
-                            <Button type="submit" disabled={creatingType}
-                                className="rounded-xl bg-primary px-5 text-white hover:bg-primary-hover flex items-center gap-2">
+                            <Button
+                                type="submit"
+                                disabled={creatingType}
+                                className="rounded-xl bg-primary px-5 text-white hover:bg-primary-hover flex items-center gap-2"
+                            >
                                 {creatingType && <Loader2 className="h-4 w-4 animate-spin" />}
                                 Create Category
                             </Button>

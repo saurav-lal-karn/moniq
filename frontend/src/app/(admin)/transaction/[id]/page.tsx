@@ -27,9 +27,6 @@ import {
     ArrowRightLeft,
     Edit,
     Trash2,
-    Clock,
-    UserCheck,
-    CreditCard,
     DollarSign,
 } from "lucide-react";
 

@@ -19,6 +19,7 @@ type WalletTypeRepository interface {
 	List(ctx context.Context, workspaceID uuid.UUID) ([]*model.WalletType, error)
 	Update(ctx context.Context, walletType *model.WalletType) error
 	Delete(ctx context.Context, id uuid.UUID) error
+	CheckIfExists(ctx context.Context, id uuid.UUID) (bool, error)
 }
 
 func NewWalletTypeRepository(db database.DB) WalletTypeRepository {
@@ -92,4 +93,16 @@ func (w *walletTypeRepository) Update(ctx context.Context, walletType *model.Wal
 	`
 	_, err := w.db.Executor(ctx).Exec(ctx, query, walletType.Name, walletType.Description, walletType.ID)
 	return err
+}
+
+func (w *walletTypeRepository) CheckIfExists(ctx context.Context, id uuid.UUID) (bool, error) {
+	var exists bool
+	query := `
+		SELECT EXISTS(SELECT 1 FROM wallet_types WHERE id = $1 AND deleted_at IS NULL)
+	`
+	err := w.db.Executor(ctx).QueryRow(ctx, query, id).Scan(&exists)
+	if err != nil {
+		return false, err
+	}
+	return exists, nil
 }

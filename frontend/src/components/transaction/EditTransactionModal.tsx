@@ -7,10 +7,8 @@ import {
     transactionService,
     ContactResponse,
     TransactionItem,
-    CreateTransactionRequest,
     contactService,
     tagService,
-    TagResponse,
     TransactionResponse,
     UpdateTransactionRequest,
 } from "@/services/transactionService";
@@ -23,7 +21,6 @@ import {
     Loader2,
     DollarSign,
     Tag as TagIcon,
-    AlertCircle,
 } from "lucide-react";
 
 interface EditTransactionModalProps {
@@ -60,7 +57,6 @@ export const EditTransactionModal: React.FC<EditTransactionModalProps> = ({
 
     const [wallets, setWallets] = useState<Wallet[]>([]);
     const [contacts, setContacts] = useState<ContactResponse[]>([]);
-    const [availableTags, setAvailableTags] = useState<TagResponse[]>([]);
     const [loadingData, setLoadingData] = useState(false);
     const [submitting, setSubmitting] = useState(false);
 
@@ -72,7 +68,7 @@ export const EditTransactionModal: React.FC<EditTransactionModalProps> = ({
         setDate(
             transaction.date
                 ? new Date(transaction.date).toISOString().split("T")[0]
-                : new Date().toISOString().split("T")[0]
+                : ""
         );
         setDescription(transaction.description || "");
         setType(transaction.type || "expense");
@@ -97,14 +93,13 @@ export const EditTransactionModal: React.FC<EditTransactionModalProps> = ({
         const loadOptions = async () => {
             setLoadingData(true);
             try {
-                const [walletsData, contactsData, tagsData] = await Promise.all([
+                const [walletsData, contactsData] = await Promise.all([
                     walletService.listWallets(),
                     contactService.listContacts(),
                     tagService.listTags(),
                 ]);
                 setWallets(walletsData || []);
                 setContacts(contactsData || []);
-                setAvailableTags(tagsData || []);
             } catch (err) {
                 console.error("Error loading dropdown options:", err);
             } finally {
