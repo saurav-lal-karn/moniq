@@ -160,7 +160,7 @@ func (h *walletHandler) GetByID(ctx *gin.Context) {
 		return
 	}
 
-	response := mapper.ToWalletResponse(wallet)
+	response := mapper.ToWalletDetailsResponse(wallet)
 	
 	helper.SuccessResponse(ctx, http.StatusOK, "Wallet details fetched successfully", response)
 }

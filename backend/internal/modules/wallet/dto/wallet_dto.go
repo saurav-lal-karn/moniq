@@ -1,6 +1,11 @@
 package dto
 
-import "github.com/google/uuid"
+import (
+	"time"
+
+	"github.com/google/uuid"
+	"github.com/saurav-lal-karn/moniq/backend/internal/helper"
+)
 
 type CreateWalletRequestDTO struct {
 	Name        string    `json:"name" binding:"required" example:"Main Wallet"`
@@ -44,4 +49,32 @@ type WalletResponseDTO struct {
 	CreatedBy   uuid.UUID `json:"created_by"`
 	TypeID      uuid.UUID `json:"type_id"`
 	Currency    string    `json:"currency"`
+}
+
+type WalletLedgerDetailsResponseDTO struct {
+	ID				string		`json:"id"`
+	Amount			float64		`json:"amount"`
+	Date			time.Time	`json:"date"`
+	Description		*string		`json:"description"`
+	Direction		string		`json:"direction"`
+	TransactionID	string		`json:"transaction_id"`
+}
+
+type WalletTypeDetailsResponseDTO struct {
+	ID		string		`json:"id"`
+	Name	string		`json:"name"`
+}
+
+type WalletDetailsResponseDTO struct {
+	ID			string			`json:"id"`
+	Name		string			`json:"name"`
+	Description	*string			`json:"description"`
+	Currency	string			`json:"currency"`
+	TypeID		string			`json:"type_id"`
+	WorkspaceID	string			`json:"workspace_id"`
+	CreatedBy	string			`json:"created_by"`
+	CreatedAt	time.Time			`json:"created_at"`
+	Type        WalletTypeDetailsResponseDTO 	`json:"type"`
+	User 		helper.UserResponseDTO			`json:"user"`
+	LedgerEntries []WalletLedgerDetailsResponseDTO `json:"ledger_entries"`
 }

@@ -19,7 +19,7 @@ type walletService struct {
 
 type WalletService interface {
 	CreateWallet(ctx context.Context, req *dto.CreateWalletRequestDTO) (error)
-	GetByID(ctx context.Context, id uuid.UUID) (*model.Wallet, error)
+	GetByID(ctx context.Context, id uuid.UUID) (*model.WalletDetails, error)
 	List(ctx context.Context, userID uuid.UUID, workspaceID uuid.UUID) ([]*model.Wallet, error)
 	Update(ctx context.Context, userID uuid.UUID, workspaceID uuid.UUID, wallet *dto.UpdateWalletRequestDTO) error
 	Delete(ctx context.Context, id uuid.UUID,  userID uuid.UUID, workspaceID uuid.UUID) error
@@ -58,7 +58,7 @@ func (s *walletService) CreateWallet(ctx context.Context, req *dto.CreateWalletR
 	return s.walletRepo.Create(ctx, wallet)
 }
 
-func (s *walletService) GetByID(ctx context.Context, id uuid.UUID) (*model.Wallet, error) {
+func (s *walletService) GetByID(ctx context.Context, id uuid.UUID) (*model.WalletDetails, error) {
 	wallet, err := s.walletRepo.GetByID(ctx, id)
 	if err != nil {
 		if err == pgx.ErrNoRows {

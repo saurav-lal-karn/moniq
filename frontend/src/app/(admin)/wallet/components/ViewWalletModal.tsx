@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useEffect, useCallback } from "react";
+import Link from "next/link";
 import { Modal } from "@/components/ui/modal";
 import { Button } from "@/components/ui/button";
 import { walletService, Wallet, WalletType } from "@/services/walletService";
@@ -178,22 +179,24 @@ export const ViewWalletModal: React.FC<ViewWalletModalProps> = ({
                             </Button>
 
                             <div className="flex gap-2">
+                                <Link href={`/wallet/${walletDetails.id}`}>
+                                    <Button
+                                        onClick={onClose}
+                                        className="rounded-xl bg-primary text-white hover:bg-primary-hover flex items-center gap-2"
+                                    >
+                                        Full Details Page
+                                    </Button>
+                                </Link>
                                 <Button
                                     variant="secondary"
-                                    onClick={onClose}
-                                    className="rounded-xl border border-border bg-surface text-foreground hover:bg-surface-secondary"
-                                >
-                                    Close
-                                </Button>
-                                <Button
                                     onClick={() => {
                                         onClose();
                                         onEdit(walletDetails);
                                     }}
-                                    className="rounded-xl bg-primary text-white hover:bg-primary-hover flex items-center gap-2"
+                                    className="rounded-xl border border-border bg-surface text-foreground hover:bg-surface-secondary flex items-center gap-2"
                                 >
                                     <Edit2 className="h-4 w-4" />
-                                    Edit Wallet
+                                    Edit
                                 </Button>
                             </div>
                         </div>

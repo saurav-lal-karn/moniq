@@ -51,3 +51,11 @@ type PaginationResponse struct {
 	Total int `json:"total"`
 	TotalPages int `json:"total_pages"`
 }
+
+type UserResponseDTO struct {
+	ID string `json:"id"`
+	FirstName string `json:"first_name"`
+	LastName *string `json:"last_name"`
+	Email string `json:"email"`
+	ProfilePictureURL *string `json:"profile_picture_url"`
+}

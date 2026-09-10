@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useEffect, useCallback } from "react";
+import Link from "next/link";
 import { Modal } from "@/components/ui/modal";
 import { DeleteConfirmationModal } from "@/components/ui/modal/DeleteConfirmationModal";
 import { Button } from "@/components/ui/button";
@@ -377,12 +378,12 @@ export default function WalletsPage() {
                                     >
                                         <Edit2 className="h-3.5 w-3.5" /> Edit
                                     </button>
-                                    <button
-                                        onClick={() => handleOpenViewModal(wallet.id)}
+                                    <Link
+                                        href={`/wallet/${wallet.id}`}
                                         className="inline-flex items-center gap-1 text-xs font-semibold text-primary hover:underline transition-colors"
                                     >
                                         Details <ArrowUpRight className="h-3 w-3" />
-                                    </button>
+                                    </Link>
                                 </div>
 
                                 {/* Subtle glow on hover */}

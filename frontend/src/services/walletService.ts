@@ -10,6 +10,35 @@ export interface Wallet {
     currency: string;
 }
 
+export interface WalletLedgerEntry {
+    id: string;
+    amount: number;
+    date: string;
+    description: string | null;
+    direction: "credit" | "debit";
+    transaction_id: string;
+}
+
+export interface WalletUser {
+    id: string;
+    first_name: string;
+    last_name?: string | null;
+    email: string;
+    profile_picture_url?: string | null;
+}
+
+export interface WalletDetailsType {
+    id: string;
+    name: string;
+}
+
+export interface WalletDetails extends Wallet {
+    created_at?: string;
+    type?: WalletDetailsType;
+    user?: WalletUser;
+    ledger_entries?: WalletLedgerEntry[];
+}
+
 export interface WalletType {
     id: string;
     name: string;
@@ -42,8 +71,8 @@ export const walletService = {
     listWallets: async (): Promise<Wallet[]> => {
         return await apiFetch<Wallet[]>("/wallet");
     },
-    getWallet: async (id: string): Promise<Wallet> => {
-        return await apiFetch<Wallet>(`/wallet/${id}`);
+    getWallet: async (id: string): Promise<WalletDetails> => {
+        return await apiFetch<WalletDetails>(`/wallet/${id}`);
     },
     createWallet: async (payload: CreateWalletPayload): Promise<void> => {
         await apiFetch<void>("/wallet", {
